@@ -1,0 +1,72 @@
+Build the first phase of a house-move management platform using Next.js with TypeScript and Tailwind CSS.
+
+For this phase, I only want the frontend UI with mock data. Do not build the full backend yet. The goal is to create a clean, modern, mobile-responsive prototype that I can show to a client.
+
+Project purpose:
+This platform helps users manage their home move by entering their old address, new address, move date, selecting services/providers, and tracking the progress of notifications to councils and utility providers. The service will later monetize through affiliate referrals for utility, mobile, and broadband providers.
+
+For now, only build these pages and flows:
+
+1. Landing page
+- modern hero section
+- short explanation of the service
+- CTA button: "Start Your Move"
+- sections for How It Works, Benefits, and FAQ preview
+- professional and trustworthy design
+
+2. Authentication pages
+- Sign Up page
+- Login page
+- simple clean form UI only
+- no real authentication logic yet
+
+3. Multi-step move onboarding wizard
+Create a step-by-step wizard with progress indicator.
+Steps:
+- Step 1: Old Address
+- Step 2: New Address
+- Step 3: Move Date
+- Step 4: Select Services/Providers
+- Step 5: Consent and Confirmation
+
+Use mock form fields and mock address lookup UI.
+Service options should include:
+- Council notification
+- Gas / Electricity
+- Water
+- Broadband / Fibre
+- Mobile
+- TV services
+
+4. User dashboard
+Create a dashboard page that shows a summary of a move case using mock data.
+Include:
+- move overview
+- old and new address
+- move date
+- provider status cards
+- statuses such as Pending, Submitted, Completed, Failed, Action Required
+- recommended providers section with:
+  - Octopus Energy
+  - Smarty
+  - YouFibre
+
+Design requirements:
+- use Next.js app router
+- use TypeScript
+- use Tailwind CSS
+- clean, modern SaaS design
+- fully responsive for desktop and mobile
+- reusable components
+- good spacing and polished UI
+- use mock data stored in local constants or JSON
+- no database yet
+- no backend API yet
+
+Code requirements:
+- organize project cleanly
+- create reusable components for header, footer, step wizard, status badge, provider card, dashboard card
+- keep code readable and maintainable
+- prepare structure so backend integration can be added later
+
+At the end, make sure the app runs properly and the navigation between pages works.

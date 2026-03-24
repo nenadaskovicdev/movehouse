@@ -1,0 +1,56 @@
+Short brief:
+
+To create an innovative monetized app and website specifically for individuals relocating their homes, the service is free to customers.
+
+Moneytisation requirement:
+
+This platform will streamline notifications to local councils and utility providers while incorporating a monetization strategy through affiliate referrals for utility, mobile, TV, and internet services, similar to topcashback.co.uk. Candidates must possess proven experience in similar projects, demonstrating their ability to build both the app and monetized website efficiently. Your expertise will be crucial in ensuring a seamless user experience and generating revenue through affiliate commissions. Additionally, you will be responsible for setting up affiliate links with our referral ID for commission tracking. A test account will be required to simulate a dummy house move, suggesting budget-friendly utility and mobile providers, potentially utilizing AI for enhanced user consent. The final product should be compatible with both iPhone (IOS) and Google (android) platforms
+
+Design process summary:
+
+Shared backend to reduce cost. Design the full end-to-end flow for a mover: account creation, address capture, move dates, council notification, utilities selection, consent + e-sign confirmation, and a live tracking dashboard that shows status per provider. A website as the marketing + onboarding layer (FAQs, trust pages, onboarding wizard) and the app as the guided “move assistant.” On the backend, a secure case record per move, document consent, generate provider-ready submissions (API where available, otherwise templated email/letter workflows or web submission where permitted), and include retries, error handling, and a clear admin portal for support, provider mappings, and reporting, and implement notifications (email/SMS/push), analytics, and a scalable architecture so you can add more councils/providers without rebuilding.
+
+Scope of work:
+
+Website + Mobile App Build (End-to-End)
+Build a responsive website + companion mobile app (if required)
+Simple guided flow: “Old Address → New Address → Move Date → Providers → Confirm”
+User account + secure data storage
+
+Provider & Council Notification Workflows
+Integrate with provider APIs/webhooks where available
+Where direct APIs aren’t available: build structured workflows (provider selection, required fields, templated notifications, tracking status)
+Full audit trail per user: submitted / pending / completed / failed
+
+Data Collection & Validation
+UK address lookup (postcode/address finder)
+Validation for required council/provider fields
+Optional document upload (proof of address etc.)
+
+Monetisation:
+Affiliated links and suggestions to customers about new cheaper providers but prefer octopus for electric/gas, smarty for mobiles and youfibre for fibre.
+
+Status Tracking + Notifications
+Confirmation emails/SMS for users
+Admin dashboard to track submissions, retries, and exceptions
+Error handling + retry logic so it’s reliable in production
+
+Admin Panel
+Manage provider list, field requirements, and logic per provider
+View submissions, user activity, and success rate
+
+Testing & Deployment
+Full end-to-end testing across providers
+Staging → production release plan
+Clean documentation and handover
+
+
+APIs:
+
+You must have experience of linking apis to these services previously
+
+Public and private bodies compliance:
+
+Councils and utility providers now expect cleaner data, clearer consent, and tighter handoffs and to pass external audits so this is not a "move notification app" but a compliance-ready, monetised platform with shared back end architecture, and a strong focus on clean data, consent and scalability.
+
+Please only bid if The website and apps are fully working and monetized ready to go, AI can be used if it helps customers find better deals than their current provider, address lookups used to prevent typos etc.

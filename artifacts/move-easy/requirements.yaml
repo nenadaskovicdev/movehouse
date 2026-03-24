@@ -1,0 +1,23 @@
+packages:
+  "framer-motion": "For page transitions, smooth wizard step animations, and micro-interactions"
+  "lucide-react": "For beautiful, consistent iconography across the app"
+  "clsx": "For conditional tailwind class merging"
+  "tailwind-merge": "For merging tailwind classes without conflicts"
+  "date-fns": "For formatting move dates in the wizard and dashboard"
+  "react-day-picker": "For the date picker component in the move wizard"
+  "@hookform/resolvers": "For form validation if we extend the prototype"
+  "react-hook-form": "For managing complex form state in the multi-step wizard"
+  "zod": "For form schema validation"
+
+images:
+  - path: "artifacts/move-easy/public/images/logo-icon.png"
+    description: "A minimal, modern logo icon for a company called MoveEasy. It should be a stylized combination of a house and an arrow pointing right or forward, rendered in a bright teal green color (#00A86B) on a transparent background. Flat vector SaaS style."
+    aspect_ratio: "1:1"
+  - path: "artifacts/move-easy/public/images/hero-abstract.png"
+    description: "A clean, bright abstract 3D geometric composition featuring soft shapes like spheres, cylinders, and stylized house shapes. The color palette should be dominated by crisp whites, light grays, and vibrant teal green accents. Soft lighting, professional SaaS aesthetic."
+    aspect_ratio: "16:9"
+
+notes:
+  - Building a high-fidelity frontend prototype with mock data.
+  - No backend API integration is implemented in this phase, as per client requirements for a UI prototype.
+  - State is managed locally within components (e.g., Wizard steps).

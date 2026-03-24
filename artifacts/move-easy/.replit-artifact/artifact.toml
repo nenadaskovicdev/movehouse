@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MoveEasy"
+version = "1.0.0"
+id = "artifacts/move-easy"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19587
+
+[services.development]
+run = "pnpm --filter @workspace/move-easy run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/move-easy", "run", "build" ]
+publicDir = "artifacts/move-easy/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19587"
+BASE_PATH = "/"
