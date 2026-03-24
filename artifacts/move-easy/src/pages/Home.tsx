@@ -57,21 +57,6 @@ export default function Home() {
                   className="w-full h-auto rounded-xl object-cover"
                 />
                 
-                {/* Floating UI Elements */}
-                <motion.div 
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl border border-border/50 flex items-center gap-3"
-                >
-                  <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
-                    <CheckSquare className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">Council Notified</p>
-                    <p className="text-xs text-muted-foreground">Just now</p>
-                  </div>
-                </motion.div>
               </div>
             </motion.div>
           </div>
