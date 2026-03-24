@@ -49,12 +49,12 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="flex-1 w-full max-w-lg lg:max-w-none relative"
             >
-              {/* hero abstract geometric representation */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-white p-2">
+              {/* hero realistic house photo */}
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
                  <img 
-                  src={`${import.meta.env.BASE_URL}images/hero-abstract.png`}
-                  alt="Abstract home representation" 
-                  className="w-full h-auto rounded-xl object-cover"
+                  src={`${import.meta.env.BASE_URL}images/hero-realistic.jpg`}
+                  alt="Beautiful home" 
+                  className="w-full h-auto rounded-2xl object-cover"
                 />
                 
               </div>
