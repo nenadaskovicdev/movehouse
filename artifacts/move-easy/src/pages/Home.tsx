@@ -8,8 +8,8 @@ export default function Home() {
   return (
     <AppLayout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-background pt-16 pb-24 lg:pt-32 lg:pb-40">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
+      <section className="relative overflow-hidden bg-slate-700 pt-16 pb-24 lg:pt-32 lg:pb-40">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-600 via-slate-700 to-slate-800" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
             <motion.div 
@@ -18,17 +18,17 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="flex-1 text-center lg:text-left"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-sm font-semibold mb-6 border border-white/20">
                 <Sparkles className="w-4 h-4" />
                 <span>The UK's #1 Moving Assistant</span>
               </div>
-              <h1 className="text-5xl lg:text-7xl font-display font-extrabold text-foreground tracking-tight leading-[1.1] mb-6">
+              <h1 className="text-5xl lg:text-7xl font-display font-extrabold text-white tracking-tight leading-[1.1] mb-6">
                 Move home without <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">
+                <span className="text-primary">
                   the admin stress
                 </span>
               </h1>
-              <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto lg:mx-0">
+              <p className="text-lg lg:text-xl text-white/70 mb-8 max-w-2xl mx-auto lg:mx-0">
                 Notify your council, water, energy, and broadband providers in one go. Entirely free. Takes less than 5 minutes.
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
@@ -37,7 +37,7 @@ export default function Home() {
                     Start Your Move <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
-                <p className="text-sm text-muted-foreground font-medium flex items-center gap-2">
+                <p className="text-sm text-white/60 font-medium flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-primary" /> No credit card required
                 </p>
               </div>

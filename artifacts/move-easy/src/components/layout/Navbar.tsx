@@ -17,38 +17,38 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isHome = location === "/";
+  const isHome = location === "/" || location === "";
 
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out border-b border-transparent",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out border-b",
         isScrolled || !isHome
-          ? "bg-white/80 backdrop-blur-md shadow-sm border-border"
-          : "bg-transparent"
+          ? "bg-white/95 backdrop-blur-md shadow-sm border-border"
+          : "bg-slate-800 border-slate-700"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
               <Home className="w-5 h-5" />
             </div>
-            <span className="font-display font-bold text-xl tracking-tight text-foreground">
+            <span className={cn("font-display font-bold text-xl tracking-tight", isScrolled || !isHome ? "text-foreground" : "text-white")}>
               Move<span className="text-primary">Easy</span>
             </span>
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/#how-it-works" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
               How it works
             </Link>
-            <Link href="/#benefits" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/#benefits" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
               Features
             </Link>
-            <Link href="/#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/#faq" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
               FAQs
             </Link>
           </nav>
@@ -56,7 +56,7 @@ export function Navbar() {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/login">
-              <Button variant="ghost" className="font-semibold text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" className={cn("font-semibold", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white hover:bg-white/10")}>
                 Log in
               </Button>
             </Link>

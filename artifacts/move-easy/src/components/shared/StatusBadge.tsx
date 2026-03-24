@@ -23,7 +23,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     completed: {
       label: "Completed",
       icon: CheckCircle2,
-      classes: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      classes: "bg-green-50 text-green-700 border-green-200",
     },
     failed: {
       label: "Failed",

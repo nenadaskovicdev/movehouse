@@ -57,7 +57,7 @@ export default function SignUp() {
                 <Input id="confirm-password" type="password" required className="h-11" />
               </div>
               
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-4 mb-2 bg-emerald-50 text-emerald-700 p-3 rounded-lg border border-emerald-100">
+              <div className="flex items-center gap-2 text-sm mt-4 mb-2 bg-orange-50 text-orange-700 p-3 rounded-lg border border-orange-100">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
                 <p>Your data is encrypted and never sold.</p>
               </div>

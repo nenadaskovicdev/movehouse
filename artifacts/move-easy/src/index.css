@@ -68,46 +68,46 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Teal / Green Primary Theme */
-  --background: 160 20% 99%;
-  --foreground: 222 47% 11%;
+  /* Orange Primary Theme */
+  --background: 0 0% 99%;
+  --foreground: 220 26% 14%;
   
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 158 100% 33%;
+  --border: 220 13% 91%;
+  --input: 220 13% 88%;
+  --ring: 24 85% 52%;
   
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 214 32% 91%;
+  --card-foreground: 220 26% 14%;
+  --card-border: 220 13% 91%;
   
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --popover-border: 214 32% 91%;
+  --popover-foreground: 220 26% 14%;
+  --popover-border: 220 13% 91%;
   
-  /* Primary: MoveEasy Teal (#00A86B approx) */
-  --primary: 158 100% 33%;
+  /* Primary: MoveEasy Orange */
+  --primary: 24 85% 52%;
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222 47% 11.2%;
+  --secondary: 220 13% 96%;
+  --secondary-foreground: 220 26% 14%;
   
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted: 220 13% 96%;
+  --muted-foreground: 220 9% 46%;
   
-  --accent: 158 20% 95%;
-  --accent-foreground: 158 100% 33%;
+  --accent: 24 85% 96%;
+  --accent-foreground: 24 85% 42%;
   
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 100%;
 
   --sidebar: 0 0% 100%;
-  --sidebar-foreground: 222 47% 11%;
-  --sidebar-border: 214 32% 91%;
-  --sidebar-primary: 158 100% 33%;
+  --sidebar-foreground: 220 26% 14%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-primary: 24 85% 52%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 210 40% 96.1%;
-  --sidebar-accent-foreground: 222 47% 11.2%;
-  --sidebar-ring: 158 100% 33%;
+  --sidebar-accent: 220 13% 96%;
+  --sidebar-accent-foreground: 220 26% 14%;
+  --sidebar-ring: 24 85% 52%;
 
   --radius: 0.75rem;
 

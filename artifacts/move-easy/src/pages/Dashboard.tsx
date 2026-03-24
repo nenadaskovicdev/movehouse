@@ -33,7 +33,7 @@ export default function Dashboard() {
             </div>
 
             {/* Move Overview Card */}
-            <Card className="bg-gradient-to-br from-primary to-emerald-600 text-white border-none shadow-lg shadow-primary/20">
+            <Card className="bg-gradient-to-br from-primary to-orange-600 text-white border-none shadow-lg shadow-primary/20">
               <CardContent className="p-6 sm:p-8">
                 <div className="flex flex-col md:flex-row justify-between gap-8">
                   <div className="flex-1">
