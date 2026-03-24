@@ -5,18 +5,35 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home } from "lucide-react";
 import { useState } from "react";
+import { useLogin } from "@workspace/api-client-react";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { setUser } = useAuth();
+  const { toast } = useToast();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { mutate: doLogin, isPending } = useLogin({
+    mutation: {
+      onSuccess(user) {
+        setUser(user);
+        setLocation("/dashboard");
+      },
+      onError(err: any) {
+        const message = err?.data?.error ?? err?.message ?? "Invalid email or password";
+        toast({ title: "Login failed", description: message, variant: "destructive" });
+      },
+    },
+    request: { credentials: "include" },
+  });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Mock login delay
-    setTimeout(() => {
-      setLocation("/dashboard");
-    }, 1000);
+    doLogin({ data: { email, password } });
   };
 
   return (
@@ -42,20 +59,35 @@ export default function Login() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="john@example.com" required className="h-11" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  required
+                  className="h-11"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   <a href="#" className="text-sm text-primary font-medium hover:underline">Forgot password?</a>
                 </div>
-                <Input id="password" type="password" required className="h-11" />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  className="h-11"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
               </div>
-              <Button type="submit" className="w-full h-11 text-base mt-2" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
+              <Button type="submit" className="w-full h-11 text-base mt-2" disabled={isPending}>
+                {isPending ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-            
+
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link href="/signup" className="text-primary font-medium hover:underline">

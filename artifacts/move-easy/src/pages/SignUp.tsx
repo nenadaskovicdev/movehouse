@@ -5,18 +5,45 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useRegister } from "@workspace/api-client-react";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignUp() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { setUser } = useAuth();
+  const { toast } = useToast();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const { mutate: doRegister, isPending } = useRegister({
+    mutation: {
+      onSuccess(user) {
+        setUser(user);
+        setLocation("/wizard");
+      },
+      onError(err: any) {
+        const message = err?.data?.error ?? err?.message ?? "Something went wrong";
+        toast({ title: "Registration failed", description: message, variant: "destructive" });
+      },
+    },
+    request: { credentials: "include" },
+  });
 
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Mock signup delay
-    setTimeout(() => {
-      setLocation("/wizard");
-    }, 1000);
+    if (password !== confirmPassword) {
+      toast({ title: "Passwords don't match", description: "Please check your password.", variant: "destructive" });
+      return;
+    }
+    if (password.length < 8) {
+      toast({ title: "Password too short", description: "Password must be at least 8 characters.", variant: "destructive" });
+      return;
+    }
+    doRegister({ data: { fullName, email, password } });
   };
 
   return (
@@ -42,31 +69,60 @@ export default function SignUp() {
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="John Smith" required className="h-11" />
+                <Input
+                  id="name"
+                  placeholder="John Smith"
+                  required
+                  className="h-11"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="john@example.com" required className="h-11" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  required
+                  className="h-11"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required className="h-11" />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  className="h-11"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" required className="h-11" />
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  required
+                  className="h-11"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                />
               </div>
-              
+
               <div className="flex items-center gap-2 text-sm mt-4 mb-2 bg-orange-50 text-orange-700 p-3 rounded-lg border border-orange-100">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
                 <p>Your data is encrypted and never sold.</p>
               </div>
 
-              <Button type="submit" className="w-full h-11 text-base" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create Account"}
+              <Button type="submit" className="w-full h-11 text-base" disabled={isPending}>
+                {isPending ? "Creating account..." : "Create Account"}
               </Button>
             </form>
-            
+
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link href="/login" className="text-primary font-medium hover:underline">

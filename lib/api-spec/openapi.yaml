@@ -1,22 +1,26 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 0.2.0
+  description: MoveEasy API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: moves
+    description: Move cases
+  - name: providers
+    description: Providers
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +28,211 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out
+      responses:
+        "204":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /providers:
+    get:
+      operationId: listProviders
+      tags: [providers]
+      summary: List all active providers
+      responses:
+        "200":
+          description: List of providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Provider"
+
+  /moves:
+    get:
+      operationId: listMoves
+      tags: [moves]
+      summary: List moves for current user
+      responses:
+        "200":
+          description: List of moves
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Move"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createMove
+      tags: [moves]
+      summary: Create a new move
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMoveBody"
+      responses:
+        "201":
+          description: Move created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Move"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /moves/{id}:
+    get:
+      operationId: getMove
+      tags: [moves]
+      summary: Get move details with provider statuses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Move detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoveDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /moves/{id}/providers/{providerId}:
+    patch:
+      operationId: updateMoveProvider
+      tags: [moves]
+      summary: Update provider status for a move
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMoveProviderBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoveProviderStatus"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +243,276 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    RegisterBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+      required:
+        - fullName
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        email:
+          type: string
+        isAdmin:
+          type: boolean
+      required:
+        - id
+        - fullName
+        - email
+        - isAdmin
+
+    Provider:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isAffiliate:
+          type: boolean
+        affiliateUrl:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        logoUrl:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+        - category
+        - isAffiliate
+        - isActive
+
+    CreateMoveBody:
+      type: object
+      properties:
+        oldAddressLine1:
+          type: string
+        oldAddressLine2:
+          type: string
+          nullable: true
+        oldCity:
+          type: string
+        oldPostcode:
+          type: string
+        newAddressLine1:
+          type: string
+        newAddressLine2:
+          type: string
+          nullable: true
+        newCity:
+          type: string
+        newPostcode:
+          type: string
+        moveDate:
+          type: string
+        providerIds:
+          type: array
+          items:
+            type: integer
+      required:
+        - oldAddressLine1
+        - oldCity
+        - oldPostcode
+        - newAddressLine1
+        - newCity
+        - newPostcode
+        - moveDate
+        - providerIds
+
+    Move:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        oldAddressLine1:
+          type: string
+        oldAddressLine2:
+          type: string
+          nullable: true
+        oldCity:
+          type: string
+        oldPostcode:
+          type: string
+        newAddressLine1:
+          type: string
+        newAddressLine2:
+          type: string
+          nullable: true
+        newCity:
+          type: string
+        newPostcode:
+          type: string
+        moveDate:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - oldAddressLine1
+        - oldCity
+        - oldPostcode
+        - newAddressLine1
+        - newCity
+        - newPostcode
+        - moveDate
+        - status
+        - createdAt
+        - updatedAt
+
+    MoveProviderStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        moveId:
+          type: integer
+        providerId:
+          type: integer
+        providerName:
+          type: string
+        providerCategory:
+          type: string
+        isAffiliate:
+          type: boolean
+        affiliateUrl:
+          type: string
+          nullable: true
+        status:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - moveId
+        - providerId
+        - providerName
+        - providerCategory
+        - isAffiliate
+        - status
+        - createdAt
+        - updatedAt
+
+    MoveDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        oldAddressLine1:
+          type: string
+        oldAddressLine2:
+          type: string
+          nullable: true
+        oldCity:
+          type: string
+        oldPostcode:
+          type: string
+        newAddressLine1:
+          type: string
+        newAddressLine2:
+          type: string
+          nullable: true
+        newCity:
+          type: string
+        newPostcode:
+          type: string
+        moveDate:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        providers:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoveProviderStatus"
+      required:
+        - id
+        - userId
+        - oldAddressLine1
+        - oldCity
+        - oldPostcode
+        - newAddressLine1
+        - newCity
+        - newPostcode
+        - moveDate
+        - status
+        - createdAt
+        - updatedAt
+        - providers
+
+    UpdateMoveProviderBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, submitted, completed, failed, action_required]
+        notes:
+          type: string
+          nullable: true
+      required:
+        - status

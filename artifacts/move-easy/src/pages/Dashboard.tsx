@@ -3,17 +3,85 @@ import { ProviderCard } from "@/components/shared/ProviderCard";
 import { RecommendedProviderCard } from "@/components/shared/RecommendedProviderCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, ArrowRight, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { MapPin, Calendar, ArrowRight, User, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useListMoves, useGetMove } from "@workspace/api-client-react";
+import { Link } from "wouter";
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function Dashboard() {
-  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleAction = (provider: string) => {
-    toast({
-      title: `Action opened for ${provider}`,
-      description: "In a real app, this would open a modal to upload documents.",
-    });
+  const { data: moves = [], isLoading: movesLoading } = useListMoves({
+    request: { credentials: "include" },
+  });
+
+  const latestMove = moves[moves.length - 1];
+
+  const { data: moveDetail, isLoading: detailLoading } = useGetMove(
+    latestMove?.id ?? 0,
+    {
+      query: { enabled: !!latestMove },
+      request: { credentials: "include" },
+    }
+  );
+
+  const isLoading = movesLoading || (!!latestMove && detailLoading);
+
+  const affiliateProviders = moveDetail?.providers.filter(p => !p.isAffiliate) ?? [];
+  const nonSelectedAffiliate = moveDetail
+    ? [
+        { name: "Octopus Energy", type: "100% Renewable Gas & Electric", description: "Join the UK's most awarded energy supplier. No exit fees, fair pricing, and excellent customer service.", features: ["£50 credit when you switch", "100% renewable electricity", "Award-winning support"], logoText: "octopus", colorClass: "bg-[#180044]" },
+        { name: "YouFibre", type: "Ultrafast Full Fibre Broadband", description: "Don't suffer buffering in your new home. Get symmetric gigabit speeds at incredible prices.", features: ["Speeds up to 8000 Mbps", "No mid-contract price rises", "Free installation"], logoText: "YouFibre", colorClass: "bg-[#E40046]" },
+      ].filter(ap => !moveDetail.providers.some(mp => mp.providerName === ap.name))
+    : [];
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!latestMove) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold">No move set up yet</h1>
+            <p className="text-muted-foreground">Get started by setting up your move and we'll handle the rest.</p>
+          </div>
+          <Link href="/wizard">
+            <Button size="lg" className="shadow-md shadow-primary/20">
+              Set Up My Move
+            </Button>
+          </Link>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const statusMap: Record<string, { label: string; variant: "submitted" | "completed" | "pending" | "action_required" | "failed" }> = {
+    pending: { label: "Pending", variant: "pending" },
+    submitted: { label: "Submitted", variant: "submitted" },
+    completed: { label: "Completed", variant: "completed" },
+    failed: { label: "Failed", variant: "failed" },
+    action_required: { label: "Action Required", variant: "action_required" },
   };
 
   return (
@@ -27,8 +95,10 @@ export default function Dashboard() {
                 <User className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Welcome back, John</h1>
-                <p className="text-muted-foreground">Your move is currently in progress.</p>
+                <h1 className="text-2xl font-bold text-foreground">Welcome back, {user?.fullName ?? "there"}</h1>
+                <p className="text-muted-foreground">
+                  {latestMove.status === "active" ? "Your move is currently in progress." : `Move status: ${latestMove.status}`}
+                </p>
               </div>
             </div>
 
@@ -40,19 +110,23 @@ export default function Dashboard() {
                     <p className="text-primary-foreground/70 text-sm font-medium uppercase tracking-wider mb-2">Moving From</p>
                     <div className="flex items-start gap-2">
                       <MapPin className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
-                      <p className="font-semibold text-lg">123 High Street, London, SW1A 1AA</p>
+                      <p className="font-semibold text-lg">
+                        {latestMove.oldAddressLine1}, {latestMove.oldCity}, {latestMove.oldPostcode}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="hidden md:flex items-center justify-center opacity-50">
                     <ArrowRight className="w-8 h-8" />
                   </div>
-                  
+
                   <div className="flex-1">
                     <p className="text-primary-foreground/70 text-sm font-medium uppercase tracking-wider mb-2">Moving To</p>
                     <div className="flex items-start gap-2">
                       <MapPin className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
-                      <p className="font-semibold text-lg">45 Park Lane, Manchester, M1 1AB</p>
+                      <p className="font-semibold text-lg">
+                        {latestMove.newAddressLine1}, {latestMove.newCity}, {latestMove.newPostcode}
+                      </p>
                     </div>
                   </div>
 
@@ -60,7 +134,7 @@ export default function Dashboard() {
                     <p className="text-primary-foreground/70 text-sm font-medium uppercase tracking-wider mb-2">Move Date</p>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-5 h-5 opacity-80" />
-                      <p className="font-bold text-xl">15 April 2025</p>
+                      <p className="font-bold text-xl">{formatDate(latestMove.moveDate)}</p>
                     </div>
                   </div>
                 </div>
@@ -71,67 +145,55 @@ export default function Dashboard() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            
+
             {/* Left Column: Active Notifications */}
             <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Your Notifications</h2>
-                <Button variant="outline" size="sm">Add Provider</Button>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <ProviderCard 
-                  name="Manchester City Council"
-                  type="council"
-                  status="submitted"
-                  lastUpdated="Today, 09:41 AM"
-                />
-                <ProviderCard 
-                  name="Thames Water"
-                  type="water"
-                  status="action_required"
-                  lastUpdated="Yesterday"
-                  actionText="Upload ID"
-                  onAction={() => handleAction('Thames Water')}
-                />
-                <ProviderCard 
-                  name="TV Licence"
-                  type="tv"
-                  status="completed"
-                  lastUpdated="2 days ago"
-                />
-                <ProviderCard 
-                  name="Electoral Roll"
-                  type="council"
-                  status="pending"
-                  lastUpdated="Today, 09:41 AM"
-                />
               </div>
 
-              {/* Deals area mixed into notifications */}
-              <div className="mt-12 pt-8 border-t border-border">
-                <h2 className="text-xl font-bold text-foreground mb-2">Exclusive Move Deals</h2>
-                <p className="text-muted-foreground mb-6">You didn't select energy or broadband. Save money at your new place with our partners.</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <RecommendedProviderCard 
-                    name="Octopus Energy"
-                    type="100% Renewable Gas & Electric"
-                    description="Join the UK's most awarded energy supplier. No exit fees, fair pricing, and excellent customer service."
-                    features={["£50 credit when you switch", "100% renewable electricity", "Award-winning support"]}
-                    logoText="octopus"
-                    colorClass="bg-[#180044]"
-                  />
-                  <RecommendedProviderCard 
-                    name="YouFibre"
-                    type="Ultrafast Full Fibre Broadband"
-                    description="Don't suffer buffering in your new home. Get symmetric gigabit speeds at incredible prices."
-                    features={["Speeds up to 8000 Mbps", "No mid-contract price rises", "Free installation"]}
-                    logoText="YouFibre"
-                    colorClass="bg-[#E40046]"
-                  />
+              {moveDetail && moveDetail.providers.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {moveDetail.providers.map(mp => (
+                    <ProviderCard
+                      key={mp.id}
+                      name={mp.providerName}
+                      type={mp.providerCategory as any}
+                      status={mp.status as any}
+                      lastUpdated={new Date(mp.updatedAt).toLocaleDateString("en-GB")}
+                    />
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <Card className="p-8 text-center text-muted-foreground">
+                  <p>No providers selected for this move.</p>
+                  <Link href="/wizard">
+                    <Button variant="outline" className="mt-4">Update Move</Button>
+                  </Link>
+                </Card>
+              )}
+
+              {/* Deals area */}
+              {nonSelectedAffiliate.length > 0 && (
+                <div className="mt-12 pt-8 border-t border-border">
+                  <h2 className="text-xl font-bold text-foreground mb-2">Exclusive Move Deals</h2>
+                  <p className="text-muted-foreground mb-6">Save money at your new place with our partners.</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {nonSelectedAffiliate.map(ap => (
+                      <RecommendedProviderCard
+                        key={ap.name}
+                        name={ap.name}
+                        type={ap.type}
+                        description={ap.description}
+                        features={ap.features}
+                        logoText={ap.logoText}
+                        colorClass={ap.colorClass}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column: Activity / Sidebar */}
@@ -139,20 +201,19 @@ export default function Dashboard() {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-bold text-lg mb-6">Activity Log</h3>
-                  <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+                  <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
                     {[
-                      { title: "Account Created", time: "Oct 24, 10:00 AM", done: true },
-                      { title: "Move Details Saved", time: "Oct 24, 10:15 AM", done: true },
-                      { title: "Notifications Submitted", time: "Oct 24, 10:16 AM", done: true },
-                      { title: "Water Co. requested info", time: "Oct 25, 09:00 AM", done: false, active: true },
-                      { title: "All complete", time: "Pending", done: false }
+                      { title: "Account Created", time: user ? new Date(latestMove.createdAt).toLocaleDateString("en-GB") : "—", done: true },
+                      { title: "Move Details Saved", time: new Date(latestMove.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), done: true },
+                      { title: "Notifications Submitted", time: "In progress", done: false, active: true },
+                      { title: "All complete", time: "Pending", done: false },
                     ].map((log, i) => (
-                      <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 bg-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm ${log.done ? 'border-primary text-primary' : log.active ? 'border-orange-500' : 'border-muted-foreground'}`}>
+                      <div key={i} className="relative flex items-center justify-between group">
+                        <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 bg-white shrink-0 shadow-sm ${log.done ? "border-primary text-primary" : log.active ? "border-orange-500" : "border-muted-foreground"}`}>
                           {log.done && <div className="w-2 h-2 rounded-full bg-primary" />}
                         </div>
-                        <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] pl-4 md:pl-0">
-                          <div className={`p-3 rounded-lg border ${log.active ? 'bg-orange-50 border-orange-200' : 'bg-background border-border'}`}>
+                        <div className="w-[calc(100%-2rem)] pl-4">
+                          <div className={`p-3 rounded-lg border ${log.active ? "bg-orange-50 border-orange-200" : "bg-background border-border"}`}>
                             <p className="text-sm font-semibold text-foreground">{log.title}</p>
                             <p className="text-xs text-muted-foreground mt-1">{log.time}</p>
                           </div>
