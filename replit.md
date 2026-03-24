@@ -98,3 +98,26 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+## MoveEasy Feature Status
+
+### Implemented
+- **Public site**: Landing page, sign up, log in, 5-step move wizard, user dashboard
+- **Auth**: Registration + login via express-session + connect-pg-simple. Session table created in PostgreSQL. `isAdmin` stored in session at login/register.
+- **Move API**: Create, list, get move; update move provider status
+- **Admin dashboard** (route `/admin`):
+  - Route guard: `isAdmin` required; non-admins → `/`; unauthenticated → `/login`
+  - Sidebar layout with collapsible nav (Overview, Move Cases, Providers, Settings)
+  - Overview: 7 stat cards (total moves, active, completed, users, providers, pending, action_required)
+  - Move Cases table: searchable + filterable by status, shows all user moves with user info
+  - Case detail: full view with user, addresses, move date, provider notification statuses
+  - Providers management: grouped by category, inline edit (name, description, affiliate URL), active/inactive toggle
+
+### Test admin credentials
+- email: `admin@moveeasy.com` / password: `adminpassword1`
+- DB: `UPDATE users SET is_admin = true WHERE email = '...';` to grant admin
+
+### Codegen
+After editing `lib/api-spec/openapi.yaml`, run: `pnpm --filter @workspace/api-spec run codegen`
+- Avoid `format: date` on date fields (causes `zod.date()` which rejects strings)
+- Use `zod` (not `zod/v4`) in api-server route files

@@ -17,6 +17,11 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdminCase,
+  AdminCaseDetail,
+  AdminListCasesParams,
+  AdminStats,
+  AdminUpdateProviderBody,
   AuthUser,
   CreateMoveBody,
   ErrorResponse,
@@ -820,4 +825,422 @@ export const useUpdateMoveProvider = <
   TContext
 > => {
   return useMutation(getUpdateMoveProviderMutationOptions(options));
+};
+
+/**
+ * @summary Get admin overview stats
+ */
+export const getAdminGetStatsUrl = () => {
+  return `/api/admin/stats`;
+};
+
+export const adminGetStats = async (
+  options?: RequestInit,
+): Promise<AdminStats> => {
+  return customFetch<AdminStats>(getAdminGetStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetStatsQueryKey = () => {
+  return [`/api/admin/stats`] as const;
+};
+
+export const getAdminGetStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetStats>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetStats>>> = ({
+    signal,
+  }) => adminGetStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetStats>>
+>;
+export type AdminGetStatsQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get admin overview stats
+ */
+
+export function useAdminGetStats<
+  TData = Awaited<ReturnType<typeof adminGetStats>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all move cases (admin)
+ */
+export const getAdminListCasesUrl = (params?: AdminListCasesParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/cases?${stringifiedParams}`
+    : `/api/admin/cases`;
+};
+
+export const adminListCases = async (
+  params?: AdminListCasesParams,
+  options?: RequestInit,
+): Promise<AdminCase[]> => {
+  return customFetch<AdminCase[]>(getAdminListCasesUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListCasesQueryKey = (params?: AdminListCasesParams) => {
+  return [`/api/admin/cases`, ...(params ? [params] : [])] as const;
+};
+
+export const getAdminListCasesQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListCases>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  params?: AdminListCasesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminListCases>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListCasesQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListCases>>> = ({
+    signal,
+  }) => adminListCases(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminListCases>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminListCasesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListCases>>
+>;
+export type AdminListCasesQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary List all move cases (admin)
+ */
+
+export function useAdminListCases<
+  TData = Awaited<ReturnType<typeof adminListCases>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  params?: AdminListCasesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminListCases>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminListCasesQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get full case detail (admin)
+ */
+export const getAdminGetCaseUrl = (id: number) => {
+  return `/api/admin/cases/${id}`;
+};
+
+export const adminGetCase = async (
+  id: number,
+  options?: RequestInit,
+): Promise<AdminCaseDetail> => {
+  return customFetch<AdminCaseDetail>(getAdminGetCaseUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetCaseQueryKey = (id: number) => {
+  return [`/api/admin/cases/${id}`] as const;
+};
+
+export const getAdminGetCaseQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetCase>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetCase>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetCaseQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetCase>>> = ({
+    signal,
+  }) => adminGetCase(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetCase>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetCaseQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetCase>>
+>;
+export type AdminGetCaseQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get full case detail (admin)
+ */
+
+export function useAdminGetCase<
+  TData = Awaited<ReturnType<typeof adminGetCase>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetCase>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetCaseQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all providers (admin)
+ */
+export const getAdminListProvidersUrl = () => {
+  return `/api/admin/providers`;
+};
+
+export const adminListProviders = async (
+  options?: RequestInit,
+): Promise<Provider[]> => {
+  return customFetch<Provider[]>(getAdminListProvidersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListProvidersQueryKey = () => {
+  return [`/api/admin/providers`] as const;
+};
+
+export const getAdminListProvidersQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListProviders>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminListProviders>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListProvidersQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof adminListProviders>>
+  > = ({ signal }) => adminListProviders({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminListProviders>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminListProvidersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListProviders>>
+>;
+export type AdminListProvidersQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary List all providers (admin)
+ */
+
+export function useAdminListProviders<
+  TData = Awaited<ReturnType<typeof adminListProviders>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminListProviders>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminListProvidersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a provider (admin)
+ */
+export const getAdminUpdateProviderUrl = (id: number) => {
+  return `/api/admin/providers/${id}`;
+};
+
+export const adminUpdateProvider = async (
+  id: number,
+  adminUpdateProviderBody: AdminUpdateProviderBody,
+  options?: RequestInit,
+): Promise<Provider> => {
+  return customFetch<Provider>(getAdminUpdateProviderUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminUpdateProviderBody),
+  });
+};
+
+export const getAdminUpdateProviderMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateProvider>>,
+    TError,
+    { id: number; data: BodyType<AdminUpdateProviderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateProvider>>,
+  TError,
+  { id: number; data: BodyType<AdminUpdateProviderBody> },
+  TContext
+> => {
+  const mutationKey = ["adminUpdateProvider"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateProvider>>,
+    { id: number; data: BodyType<AdminUpdateProviderBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminUpdateProvider(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminUpdateProviderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateProvider>>
+>;
+export type AdminUpdateProviderMutationBody = BodyType<AdminUpdateProviderBody>;
+export type AdminUpdateProviderMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a provider (admin)
+ */
+export const useAdminUpdateProvider = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateProvider>>,
+    TError,
+    { id: number; data: BodyType<AdminUpdateProviderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateProvider>>,
+  TError,
+  { id: number; data: BodyType<AdminUpdateProviderBody> },
+  TContext
+> => {
+  return useMutation(getAdminUpdateProviderMutationOptions(options));
 };

@@ -37,6 +37,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     .returning();
 
   req.session.userId = user.id;
+  req.session.isAdmin = user.isAdmin;
 
   const response = LoginResponse.parse({
     id: user.id,
@@ -74,6 +75,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 
   req.session.userId = user.id;
+  req.session.isAdmin = user.isAdmin;
 
   const response = LoginResponse.parse({
     id: user.id,

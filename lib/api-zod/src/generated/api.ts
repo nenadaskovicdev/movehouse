@@ -173,3 +173,128 @@ export const UpdateMoveProviderResponse = zod.object({
   updatedAt: zod.date(),
   createdAt: zod.date(),
 });
+
+/**
+ * @summary Get admin overview stats
+ */
+export const AdminGetStatsResponse = zod.object({
+  totalMoves: zod.number(),
+  activeMoves: zod.number(),
+  completedMoves: zod.number(),
+  totalUsers: zod.number(),
+  totalProviders: zod.number(),
+  pendingSubmissions: zod.number(),
+  actionRequired: zod.number(),
+});
+
+/**
+ * @summary List all move cases (admin)
+ */
+export const AdminListCasesQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  status: zod.coerce.string().optional(),
+});
+
+export const AdminListCasesResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  userEmail: zod.string(),
+  userFullName: zod.string(),
+  oldAddressLine1: zod.string(),
+  oldCity: zod.string(),
+  oldPostcode: zod.string(),
+  newAddressLine1: zod.string(),
+  newCity: zod.string(),
+  newPostcode: zod.string(),
+  moveDate: zod.string(),
+  status: zod.string(),
+  providerCount: zod.number(),
+  pendingCount: zod.number(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const AdminListCasesResponse = zod.array(AdminListCasesResponseItem);
+
+/**
+ * @summary Get full case detail (admin)
+ */
+export const AdminGetCaseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminGetCaseResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  userEmail: zod.string(),
+  userFullName: zod.string(),
+  oldAddressLine1: zod.string(),
+  oldAddressLine2: zod.string().nullish(),
+  oldCity: zod.string(),
+  oldPostcode: zod.string(),
+  newAddressLine1: zod.string(),
+  newAddressLine2: zod.string().nullish(),
+  newCity: zod.string(),
+  newPostcode: zod.string(),
+  moveDate: zod.string(),
+  status: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  providers: zod.array(
+    zod.object({
+      id: zod.number(),
+      moveId: zod.number(),
+      providerId: zod.number(),
+      providerName: zod.string(),
+      providerCategory: zod.string(),
+      isAffiliate: zod.boolean(),
+      affiliateUrl: zod.string().nullish(),
+      status: zod.string(),
+      notes: zod.string().nullish(),
+      updatedAt: zod.date(),
+      createdAt: zod.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary List all providers (admin)
+ */
+export const AdminListProvidersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  category: zod.string(),
+  description: zod.string().nullish(),
+  isAffiliate: zod.boolean(),
+  affiliateUrl: zod.string().nullish(),
+  isActive: zod.boolean(),
+  logoUrl: zod.string().nullish(),
+});
+export const AdminListProvidersResponse = zod.array(
+  AdminListProvidersResponseItem,
+);
+
+/**
+ * @summary Update a provider (admin)
+ */
+export const AdminUpdateProviderParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminUpdateProviderBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().nullish(),
+  isAffiliate: zod.boolean().optional(),
+  affiliateUrl: zod.string().nullish(),
+  isActive: zod.boolean().optional(),
+});
+
+export const AdminUpdateProviderResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  category: zod.string(),
+  description: zod.string().nullish(),
+  isAffiliate: zod.boolean(),
+  affiliateUrl: zod.string().nullish(),
+  isActive: zod.boolean(),
+  logoUrl: zod.string().nullish(),
+});

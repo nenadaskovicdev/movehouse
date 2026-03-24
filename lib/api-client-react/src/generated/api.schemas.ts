@@ -120,3 +120,65 @@ export interface UpdateMoveProviderBody {
   status: UpdateMoveProviderBodyStatus;
   notes?: string | null;
 }
+
+export interface AdminStats {
+  totalMoves: number;
+  activeMoves: number;
+  completedMoves: number;
+  totalUsers: number;
+  totalProviders: number;
+  pendingSubmissions: number;
+  actionRequired: number;
+}
+
+export interface AdminCase {
+  id: number;
+  userId: number;
+  userEmail: string;
+  userFullName: string;
+  oldAddressLine1: string;
+  oldCity: string;
+  oldPostcode: string;
+  newAddressLine1: string;
+  newCity: string;
+  newPostcode: string;
+  moveDate: string;
+  status: string;
+  providerCount: number;
+  pendingCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCaseDetail {
+  id: number;
+  userId: number;
+  userEmail: string;
+  userFullName: string;
+  oldAddressLine1: string;
+  oldAddressLine2?: string | null;
+  oldCity: string;
+  oldPostcode: string;
+  newAddressLine1: string;
+  newAddressLine2?: string | null;
+  newCity: string;
+  newPostcode: string;
+  moveDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  providers: MoveProviderStatus[];
+}
+
+export interface AdminUpdateProviderBody {
+  name?: string;
+  description?: string | null;
+  isAffiliate?: boolean;
+  affiliateUrl?: string | null;
+  isActive?: boolean;
+}
+
+export type AdminListCasesParams = {
+  search?: string;
+  status?: string;
+};
