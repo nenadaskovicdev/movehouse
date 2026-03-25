@@ -12,6 +12,7 @@ export interface AdminCaseDetail {
   userId: number;
   userEmail: string;
   userFullName: string;
+  isTestUser?: boolean;
   oldAddressLine1: string;
   oldAddressLine2?: string | null;
   oldCity: string;

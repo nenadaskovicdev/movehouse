@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, count, sql, ilike, or, desc } from "drizzle-orm";
-import { db, usersTable, movesTable, moveProvidersTable, providersTable } from "@workspace/db";
+import { db, usersTable, movesTable, moveProvidersTable, providersTable, settingsTable } from "@workspace/db";
 import { z } from "zod";
 
 const router = Router();
@@ -120,6 +120,7 @@ router.get("/admin/cases/:id", requireAdmin, async (req, res): Promise<void> => 
       userId: movesTable.userId,
       userEmail: usersTable.email,
       userFullName: usersTable.fullName,
+      isTestUser: usersTable.isTestUser,
       oldAddressLine1: movesTable.oldAddressLine1,
       oldAddressLine2: movesTable.oldAddressLine2,
       oldCity: movesTable.oldCity,
@@ -205,6 +206,69 @@ router.patch("/admin/providers/:id", requireAdmin, async (req, res): Promise<voi
 
   if (!updated) {
     res.status(404).json({ error: "Provider not found" });
+    return;
+  }
+
+  res.json(updated);
+});
+
+router.get("/admin/settings", requireAdmin, async (_req, res): Promise<void> => {
+  const rows = await db.select().from(settingsTable);
+  const settings: Record<string, string> = {};
+  for (const row of rows) {
+    settings[row.key] = row.value;
+  }
+  res.json({
+    testPreviewEmail: settings["test_preview_email"] ?? "",
+  });
+});
+
+const AdminUpdateSettingsBody = z.object({
+  testPreviewEmail: z.string().email().or(z.literal("")),
+});
+
+router.put("/admin/settings", requireAdmin, async (req, res): Promise<void> => {
+  const parsed = AdminUpdateSettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  await db
+    .insert(settingsTable)
+    .values({ key: "test_preview_email", value: parsed.data.testPreviewEmail })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value: parsed.data.testPreviewEmail } });
+
+  res.json({ testPreviewEmail: parsed.data.testPreviewEmail });
+});
+
+const AdminToggleTestUserBody = z.object({
+  isTestUser: z.boolean(),
+});
+
+router.patch("/admin/users/:id/test", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+
+  const parsed = AdminToggleTestUserBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({ isTestUser: parsed.data.isTestUser })
+    .where(eq(usersTable.id, id))
+    .returning({ id: usersTable.id, isTestUser: usersTable.isTestUser, email: usersTable.email });
+
+  if (!updated) {
+    res.status(404).json({ error: "User not found" });
     return;
   }
 

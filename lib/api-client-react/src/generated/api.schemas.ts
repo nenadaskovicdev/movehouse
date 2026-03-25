@@ -155,6 +155,7 @@ export interface AdminCaseDetail {
   userId: number;
   userEmail: string;
   userFullName: string;
+  isTestUser?: boolean;
   oldAddressLine1: string;
   oldAddressLine2?: string | null;
   oldCity: string;
@@ -176,6 +177,24 @@ export interface AdminUpdateProviderBody {
   isAffiliate?: boolean;
   affiliateUrl?: string | null;
   isActive?: boolean;
+}
+
+export interface AdminSettings {
+  testPreviewEmail: string;
+}
+
+export interface AdminUpdateSettingsBody {
+  testPreviewEmail: string;
+}
+
+export interface AdminToggleTestUserBody {
+  isTestUser: boolean;
+}
+
+export interface AdminToggleTestUserResponse {
+  id: number;
+  email: string;
+  isTestUser: boolean;
 }
 
 export type AdminListCasesParams = {

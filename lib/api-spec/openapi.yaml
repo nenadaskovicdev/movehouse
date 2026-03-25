@@ -363,6 +363,67 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /admin/settings:
+    get:
+      operationId: adminGetSettings
+      tags: [admin]
+      summary: Get admin settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+    put:
+      operationId: adminUpdateSettings
+      tags: [admin]
+      summary: Update admin settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateSettingsBody"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+
+  /admin/users/{id}/test:
+    patch:
+      operationId: adminToggleTestUser
+      tags: [admin]
+      summary: Toggle test user flag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminToggleTestUserBody"
+      responses:
+        "200":
+          description: Updated user test flag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminToggleTestUserResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -739,6 +800,8 @@ components:
           type: string
         userFullName:
           type: string
+        isTestUser:
+          type: boolean
         oldAddressLine1:
           type: string
         oldAddressLine2:
@@ -803,3 +866,41 @@ components:
           nullable: true
         isActive:
           type: boolean
+
+    AdminSettings:
+      type: object
+      properties:
+        testPreviewEmail:
+          type: string
+      required:
+        - testPreviewEmail
+
+    AdminUpdateSettingsBody:
+      type: object
+      properties:
+        testPreviewEmail:
+          type: string
+      required:
+        - testPreviewEmail
+
+    AdminToggleTestUserBody:
+      type: object
+      properties:
+        isTestUser:
+          type: boolean
+      required:
+        - isTestUser
+
+    AdminToggleTestUserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        isTestUser:
+          type: boolean
+      required:
+        - id
+        - email
+        - isTestUser

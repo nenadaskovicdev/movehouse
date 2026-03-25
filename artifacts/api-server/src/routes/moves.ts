@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, movesTable, moveProvidersTable, providersTable } from "@workspace/db";
+import { eq, and, inArray } from "drizzle-orm";
+import { db, movesTable, moveProvidersTable, providersTable, usersTable, settingsTable } from "@workspace/db";
 import {
   CreateMoveBody,
   ListMovesResponseItem,
@@ -8,6 +8,7 @@ import {
   UpdateMoveProviderBody,
   UpdateMoveProviderResponse,
 } from "@workspace/api-zod";
+import { sendTestMovePreview } from "../lib/email";
 
 const router = Router();
 
@@ -43,6 +44,8 @@ router.post("/moves", requireAuth, async (req, res): Promise<void> => {
     .values({ ...moveData, userId: req.session.userId! })
     .returning();
 
+  let selectedProviders: Array<{ name: string; category: string }> = [];
+
   if (providerIds && providerIds.length > 0) {
     await db.insert(moveProvidersTable).values(
       providerIds.map((providerId) => ({
@@ -51,6 +54,37 @@ router.post("/moves", requireAuth, async (req, res): Promise<void> => {
         status: "pending" as const,
       }))
     );
+
+    selectedProviders = await db
+      .select({ id: providersTable.id, name: providersTable.name, category: providersTable.category })
+      .from(providersTable)
+      .where(inArray(providersTable.id, providerIds));
+  }
+
+  const [user] = await db
+    .select({ isTestUser: usersTable.isTestUser, email: usersTable.email, fullName: usersTable.fullName })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.session.userId!));
+
+  if (user?.isTestUser) {
+    const settingRows = await db.select().from(settingsTable).where(eq(settingsTable.key, "test_preview_email"));
+    const toEmail = settingRows[0]?.value;
+
+    if (toEmail) {
+      const oldAddress = [move.oldAddressLine1, move.oldAddressLine2, move.oldCity, move.oldPostcode]
+        .filter(Boolean).join(", ");
+      const newAddress = [move.newAddressLine1, move.newAddressLine2, move.newCity, move.newPostcode]
+        .filter(Boolean).join(", ");
+
+      sendTestMovePreview(toEmail, {
+        userName: user.fullName,
+        userEmail: user.email,
+        oldAddress,
+        newAddress,
+        moveDate: move.moveDate,
+        providers: selectedProviders,
+      }).catch(() => {});
+    }
   }
 
   res.status(201).json(ListMovesResponseItem.parse(move));

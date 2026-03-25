@@ -227,6 +227,7 @@ export const AdminGetCaseResponse = zod.object({
   userId: zod.number(),
   userEmail: zod.string(),
   userFullName: zod.string(),
+  isTestUser: zod.boolean().optional(),
   oldAddressLine1: zod.string(),
   oldAddressLine2: zod.string().nullish(),
   oldCity: zod.string(),
@@ -297,4 +298,39 @@ export const AdminUpdateProviderResponse = zod.object({
   affiliateUrl: zod.string().nullish(),
   isActive: zod.boolean(),
   logoUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary Get admin settings
+ */
+export const AdminGetSettingsResponse = zod.object({
+  testPreviewEmail: zod.string(),
+});
+
+/**
+ * @summary Update admin settings
+ */
+export const AdminUpdateSettingsBody = zod.object({
+  testPreviewEmail: zod.string(),
+});
+
+export const AdminUpdateSettingsResponse = zod.object({
+  testPreviewEmail: zod.string(),
+});
+
+/**
+ * @summary Toggle test user flag
+ */
+export const AdminToggleTestUserParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminToggleTestUserBody = zod.object({
+  isTestUser: zod.boolean(),
+});
+
+export const AdminToggleTestUserResponse = zod.object({
+  id: zod.number(),
+  email: zod.string(),
+  isTestUser: zod.boolean(),
 });

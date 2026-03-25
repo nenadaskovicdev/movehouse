@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAdminGetCase } from "@workspace/api-client-react";
-import { ArrowLeft, MapPin, Calendar, User, Building2, Clock, CheckCircle2, AlertTriangle, XCircle, Send } from "lucide-react";
+import { useAdminGetCase, useAdminToggleTestUser } from "@workspace/api-client-react";
+import { ArrowLeft, MapPin, Calendar, User, Building2, Clock, CheckCircle2, AlertTriangle, XCircle, Send, FlaskConical } from "lucide-react";
 import { Link } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   pending: { label: "Pending", icon: Clock, color: "text-yellow-600 bg-yellow-100" },
@@ -25,10 +27,32 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function AdminCaseDetail({ id }: { id: string }) {
   const caseId = parseInt(id, 10);
+  const queryClient = useQueryClient();
+  const [toggling, setToggling] = useState(false);
 
   const { data: caseDetail, isLoading } = useAdminGetCase(caseId, {
     request: { credentials: "include" },
   });
+
+  const { mutate: toggleTestUser } = useAdminToggleTestUser({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries();
+        setToggling(false);
+      },
+      onError: () => setToggling(false),
+    },
+    request: { credentials: "include" },
+  });
+
+  const handleTestToggle = () => {
+    if (!caseDetail) return;
+    setToggling(true);
+    toggleTestUser({
+      id: caseDetail.userId,
+      data: { isTestUser: !caseDetail.isTestUser },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -81,9 +105,16 @@ export default function AdminCaseDetail({ id }: { id: string }) {
               Created {new Date(caseDetail.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${moveStatusConfig[caseDetail.status as keyof typeof moveStatusConfig] ?? "bg-slate-100 text-slate-600"}`}>
-            {caseDetail.status}
-          </span>
+          <div className="flex items-center gap-2">
+            {caseDetail.isTestUser && (
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200">
+                <FlaskConical className="w-3 h-3" /> Test Account
+              </span>
+            )}
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${moveStatusConfig[caseDetail.status as keyof typeof moveStatusConfig] ?? "bg-slate-100 text-slate-600"}`}>
+              {caseDetail.status}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -94,10 +125,32 @@ export default function AdminCaseDetail({ id }: { id: string }) {
                 <User className="w-4 h-4 text-primary" /> User
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1">
-              <p className="font-semibold">{caseDetail.userFullName}</p>
-              <p className="text-muted-foreground text-sm">{caseDetail.userEmail}</p>
-              <p className="text-muted-foreground text-xs">User ID: {caseDetail.userId}</p>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="font-semibold">{caseDetail.userFullName}</p>
+                <p className="text-muted-foreground text-sm">{caseDetail.userEmail}</p>
+                <p className="text-muted-foreground text-xs">User ID: {caseDetail.userId}</p>
+              </div>
+              {/* Test user toggle */}
+              <div className="border-t pt-3">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Test accounts send a preview email instead of notifying providers.
+                </p>
+                <Button
+                  size="sm"
+                  variant={caseDetail.isTestUser ? "destructive" : "outline"}
+                  className="gap-2 text-xs"
+                  onClick={handleTestToggle}
+                  disabled={toggling}
+                >
+                  <FlaskConical className="w-3.5 h-3.5" />
+                  {toggling
+                    ? "Updating…"
+                    : caseDetail.isTestUser
+                    ? "Remove test account"
+                    : "Mark as test account"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

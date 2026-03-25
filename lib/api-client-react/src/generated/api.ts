@@ -20,8 +20,12 @@ import type {
   AdminCase,
   AdminCaseDetail,
   AdminListCasesParams,
+  AdminSettings,
   AdminStats,
+  AdminToggleTestUserBody,
+  AdminToggleTestUserResponse,
   AdminUpdateProviderBody,
+  AdminUpdateSettingsBody,
   AuthUser,
   CreateMoveBody,
   ErrorResponse,
@@ -1243,4 +1247,255 @@ export const useAdminUpdateProvider = <
   TContext
 > => {
   return useMutation(getAdminUpdateProviderMutationOptions(options));
+};
+
+/**
+ * @summary Get admin settings
+ */
+export const getAdminGetSettingsUrl = () => {
+  return `/api/admin/settings`;
+};
+
+export const adminGetSettings = async (
+  options?: RequestInit,
+): Promise<AdminSettings> => {
+  return customFetch<AdminSettings>(getAdminGetSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetSettingsQueryKey = () => {
+  return [`/api/admin/settings`] as const;
+};
+
+export const getAdminGetSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof adminGetSettings>>
+  > = ({ signal }) => adminGetSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetSettings>>
+>;
+export type AdminGetSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get admin settings
+ */
+
+export function useAdminGetSettings<
+  TData = Awaited<ReturnType<typeof adminGetSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update admin settings
+ */
+export const getAdminUpdateSettingsUrl = () => {
+  return `/api/admin/settings`;
+};
+
+export const adminUpdateSettings = async (
+  adminUpdateSettingsBody: AdminUpdateSettingsBody,
+  options?: RequestInit,
+): Promise<AdminSettings> => {
+  return customFetch<AdminSettings>(getAdminUpdateSettingsUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminUpdateSettingsBody),
+  });
+};
+
+export const getAdminUpdateSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateSettings>>,
+    TError,
+    { data: BodyType<AdminUpdateSettingsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateSettings>>,
+  TError,
+  { data: BodyType<AdminUpdateSettingsBody> },
+  TContext
+> => {
+  const mutationKey = ["adminUpdateSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateSettings>>,
+    { data: BodyType<AdminUpdateSettingsBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return adminUpdateSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminUpdateSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateSettings>>
+>;
+export type AdminUpdateSettingsMutationBody = BodyType<AdminUpdateSettingsBody>;
+export type AdminUpdateSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update admin settings
+ */
+export const useAdminUpdateSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateSettings>>,
+    TError,
+    { data: BodyType<AdminUpdateSettingsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateSettings>>,
+  TError,
+  { data: BodyType<AdminUpdateSettingsBody> },
+  TContext
+> => {
+  return useMutation(getAdminUpdateSettingsMutationOptions(options));
+};
+
+/**
+ * @summary Toggle test user flag
+ */
+export const getAdminToggleTestUserUrl = (id: number) => {
+  return `/api/admin/users/${id}/test`;
+};
+
+export const adminToggleTestUser = async (
+  id: number,
+  adminToggleTestUserBody: AdminToggleTestUserBody,
+  options?: RequestInit,
+): Promise<AdminToggleTestUserResponse> => {
+  return customFetch<AdminToggleTestUserResponse>(
+    getAdminToggleTestUserUrl(id),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(adminToggleTestUserBody),
+    },
+  );
+};
+
+export const getAdminToggleTestUserMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminToggleTestUser>>,
+    TError,
+    { id: number; data: BodyType<AdminToggleTestUserBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminToggleTestUser>>,
+  TError,
+  { id: number; data: BodyType<AdminToggleTestUserBody> },
+  TContext
+> => {
+  const mutationKey = ["adminToggleTestUser"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminToggleTestUser>>,
+    { id: number; data: BodyType<AdminToggleTestUserBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminToggleTestUser(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminToggleTestUserMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminToggleTestUser>>
+>;
+export type AdminToggleTestUserMutationBody = BodyType<AdminToggleTestUserBody>;
+export type AdminToggleTestUserMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Toggle test user flag
+ */
+export const useAdminToggleTestUser = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminToggleTestUser>>,
+    TError,
+    { id: number; data: BodyType<AdminToggleTestUserBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminToggleTestUser>>,
+  TError,
+  { id: number; data: BodyType<AdminToggleTestUserBody> },
+  TContext
+> => {
+  return useMutation(getAdminToggleTestUserMutationOptions(options));
 };
