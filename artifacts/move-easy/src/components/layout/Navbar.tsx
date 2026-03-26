@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LayoutDashboard } from "lucide-react";
+import { Home, Menu, X, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -38,15 +38,13 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center group">
-            <img
-              src="/images/logo-junctionn.png"
-              alt="Junctionn"
-              className={cn(
-                "h-10 w-auto object-contain transition-all group-hover:opacity-90",
-                !isScrolled && isHome ? "brightness-0 invert" : ""
-              )}
-            />
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+              <Home className="w-5 h-5" />
+            </div>
+            <span className={cn("font-display font-bold text-xl tracking-tight", isScrolled || !isHome ? "text-foreground" : "text-white")}>
+              Move<span className="text-primary">Easy</span>
+            </span>
           </Link>
 
           {/* Desktop Nav */}
