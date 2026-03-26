@@ -48,14 +48,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Sidebar header */}
         <div className="flex items-center h-16 px-4 border-b border-slate-700 gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shrink-0">
-            <Home className="w-4 h-4 text-white" />
-          </div>
-          {sidebarOpen && (
-            <span className="font-bold text-sm tracking-tight truncate">
-              Move<span className="text-primary">Easy</span>
-              <span className="ml-1 text-xs font-normal text-slate-400">Admin</span>
-            </span>
+          {sidebarOpen ? (
+            <img src="/images/logo-junctionn.png" alt="Junctionn" className="h-7 w-auto object-contain brightness-0 invert" />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shrink-0">
+              <Home className="w-4 h-4 text-white" />
+            </div>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

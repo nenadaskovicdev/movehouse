@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home } from "lucide-react";
 import { useState } from "react";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
@@ -40,13 +39,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg">
-              <Home className="w-5 h-5" />
-            </div>
-            <span className="font-display font-bold text-2xl tracking-tight text-foreground">
-              Move<span className="text-primary">Easy</span>
-            </span>
+          <Link href="/">
+            <img src="/images/logo-junctionn.png" alt="Junctionn" className="h-12 w-auto object-contain" />
           </Link>
         </div>
 
