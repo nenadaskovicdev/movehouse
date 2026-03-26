@@ -21,7 +21,7 @@ export default function Login() {
     mutation: {
       onSuccess(user) {
         setUser(user);
-        setLocation("/dashboard");
+        setLocation(user.isAdmin ? "/admin" : "/dashboard");
       },
       onError(err: any) {
         const message = err?.data?.error ?? err?.message ?? "Invalid email or password";

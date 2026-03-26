@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StepWizard } from "@/components/ui/StepWizard";
-import { Search, MapPin, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
+import { Search, MapPin, Calendar as CalendarIcon, CheckCircle2, Loader2, AlertCircle, CheckCheck } from "lucide-react";
 import { useListProviders, useCreateMove } from "@workspace/api-client-react";
 import type { Provider } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,31 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   postal: "Set up mail redirection from your old address.",
 };
 
+type PostcodeStatus = "idle" | "loading" | "valid" | "invalid";
+
+interface PostcodeState {
+  status: PostcodeStatus;
+  town: string;
+  error: string;
+}
+
+function normalisePostcode(raw: string): string {
+  return raw.trim().toUpperCase().replace(/\s+/g, " ");
+}
+
+function isPostcodeFormat(pc: string): boolean {
+  return /^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$/i.test(pc.replace(/\s+/g, " ").trim());
+}
+
+function deriveTown(result: any): string {
+  const district: string = result.admin_district ?? "";
+  if (district.startsWith("London Borough of ")) return district.replace("London Borough of ", "");
+  if (district.startsWith("Royal Borough of ")) return district.replace("Royal Borough of ", "");
+  if (district === "City of London") return "City of London";
+  if (district) return district;
+  return result.admin_ward ?? "";
+}
+
 export default function Wizard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -52,6 +77,12 @@ export default function Wizard() {
     consent: false,
     signature: "",
   });
+
+  const [oldPc, setOldPc] = useState<PostcodeState>({ status: "idle", town: "", error: "" });
+  const [newPc, setNewPc] = useState<PostcodeState>({ status: "idle", town: "", error: "" });
+
+  const oldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const newTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: providers = [], isLoading: loadingProviders } = useListProviders({
     request: { credentials: "include" },
@@ -83,6 +114,75 @@ export default function Wizard() {
     });
   };
 
+  const lookupPostcode = useCallback(async (
+    raw: string,
+    setter: React.Dispatch<React.SetStateAction<PostcodeState>>,
+    cityField: "oldCity" | "newCity",
+  ) => {
+    const pc = normalisePostcode(raw);
+    if (!pc) { setter({ status: "idle", town: "", error: "" }); return; }
+    if (!isPostcodeFormat(pc)) {
+      setter({ status: "invalid", town: "", error: "Enter a valid UK postcode (e.g. SW1A 1AA)" });
+      return;
+    }
+    setter(prev => ({ ...prev, status: "loading", error: "" }));
+    try {
+      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
+      const json = await res.json();
+      if (json.status === 200 && json.result) {
+        const town = deriveTown(json.result);
+        setter({ status: "valid", town, error: "" });
+        updateForm({ [cityField]: town });
+      } else {
+        setter({ status: "invalid", town: "", error: "Postcode not found — please check and try again" });
+      }
+    } catch {
+      setter({ status: "invalid", town: "", error: "Could not validate postcode — please check your connection" });
+    }
+  }, []);
+
+  const handleOldPostcodeChange = (val: string) => {
+    updateForm({ oldPostcode: val });
+    if (oldTimerRef.current) clearTimeout(oldTimerRef.current);
+    setOldPc(prev => ({ ...prev, status: "idle", error: "" }));
+    if (val.trim().length >= 5) {
+      oldTimerRef.current = setTimeout(() => lookupPostcode(val, setOldPc, "oldCity"), 600);
+    }
+  };
+
+  const handleNewPostcodeChange = (val: string) => {
+    updateForm({ newPostcode: val });
+    if (newTimerRef.current) clearTimeout(newTimerRef.current);
+    setNewPc(prev => ({ ...prev, status: "idle", error: "" }));
+    if (val.trim().length >= 5) {
+      newTimerRef.current = setTimeout(() => lookupPostcode(val, setNewPc, "newCity"), 600);
+    }
+  };
+
+  const handleOldPostcodeBlur = () => {
+    if (formData.oldPostcode.trim()) lookupPostcode(formData.oldPostcode, setOldPc, "oldCity");
+  };
+
+  const handleNewPostcodeBlur = () => {
+    if (formData.newPostcode.trim()) lookupPostcode(formData.newPostcode, setNewPc, "newCity");
+  };
+
+  const isStep0Valid =
+    oldPc.status === "valid" &&
+    formData.oldAddressLine1.trim().length >= 3;
+
+  const isStep1Valid =
+    newPc.status === "valid" &&
+    formData.newAddressLine1.trim().length >= 3;
+
+  const isStep2Valid = !!formData.moveDate;
+
+  const isStep3Valid = formData.selectedProviderIds.size > 0;
+
+  const isStep4Valid = formData.consent && formData.signature.trim().length >= 3;
+
+  const stepValid = [isStep0Valid, isStep1Valid, isStep2Valid, isStep3Valid, isStep4Valid];
+
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(prev => prev + 1);
@@ -101,10 +201,10 @@ export default function Wizard() {
       data: {
         oldAddressLine1: formData.oldAddressLine1,
         oldCity: formData.oldCity,
-        oldPostcode: formData.oldPostcode,
+        oldPostcode: normalisePostcode(formData.oldPostcode),
         newAddressLine1: formData.newAddressLine1,
         newCity: formData.newCity,
-        newPostcode: formData.newPostcode,
+        newPostcode: normalisePostcode(formData.newPostcode),
         moveDate: formData.moveDate,
         providerIds: Array.from(formData.selectedProviderIds),
       },
@@ -116,6 +216,13 @@ export default function Wizard() {
     acc[p.category].push(p);
     return acc;
   }, {});
+
+  function PostcodeIcon({ state }: { state: PostcodeState }) {
+    if (state.status === "loading") return <Loader2 className="absolute right-3 top-3.5 w-5 h-5 text-muted-foreground animate-spin" />;
+    if (state.status === "valid") return <CheckCheck className="absolute right-3 top-3.5 w-5 h-5 text-green-500" />;
+    if (state.status === "invalid") return <AlertCircle className="absolute right-3 top-3.5 w-5 h-5 text-destructive" />;
+    return null;
+  }
 
   return (
     <AppLayout>
@@ -147,14 +254,22 @@ export default function Wizard() {
                       <div className="space-y-2">
                         <Label>Postcode</Label>
                         <div className="relative">
-                          <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+                          <Search className="absolute left-3 top-3.5 w-5 h-5 text-muted-foreground" />
                           <Input
                             placeholder="e.g. SW1A 1AA"
-                            className="pl-10 h-12"
+                            className={`pl-10 pr-10 h-12 ${oldPc.status === "invalid" ? "border-destructive focus-visible:ring-destructive" : oldPc.status === "valid" ? "border-green-500 focus-visible:ring-green-500" : ""}`}
                             value={formData.oldPostcode}
-                            onChange={e => updateForm({ oldPostcode: e.target.value })}
+                            onChange={e => handleOldPostcodeChange(e.target.value)}
+                            onBlur={handleOldPostcodeBlur}
                           />
+                          <PostcodeIcon state={oldPc} />
                         </div>
+                        {oldPc.status === "invalid" && (
+                          <p className="text-sm text-destructive">{oldPc.error}</p>
+                        )}
+                        {oldPc.status === "valid" && oldPc.town && (
+                          <p className="text-sm text-green-600 font-medium">{oldPc.town}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Address Line 1</Label>
@@ -168,7 +283,7 @@ export default function Wizard() {
                       <div className="space-y-2">
                         <Label>City / Town</Label>
                         <Input
-                          placeholder="e.g. London"
+                          placeholder="Auto-filled from postcode"
                           className="h-12"
                           value={formData.oldCity}
                           onChange={e => updateForm({ oldCity: e.target.value })}
@@ -189,14 +304,22 @@ export default function Wizard() {
                       <div className="space-y-2">
                         <Label>Postcode</Label>
                         <div className="relative">
-                          <MapPin className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+                          <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-muted-foreground" />
                           <Input
                             placeholder="e.g. M1 1AB"
-                            className="pl-10 h-12"
+                            className={`pl-10 pr-10 h-12 ${newPc.status === "invalid" ? "border-destructive focus-visible:ring-destructive" : newPc.status === "valid" ? "border-green-500 focus-visible:ring-green-500" : ""}`}
                             value={formData.newPostcode}
-                            onChange={e => updateForm({ newPostcode: e.target.value })}
+                            onChange={e => handleNewPostcodeChange(e.target.value)}
+                            onBlur={handleNewPostcodeBlur}
                           />
+                          <PostcodeIcon state={newPc} />
                         </div>
+                        {newPc.status === "invalid" && (
+                          <p className="text-sm text-destructive">{newPc.error}</p>
+                        )}
+                        {newPc.status === "valid" && newPc.town && (
+                          <p className="text-sm text-green-600 font-medium">{newPc.town}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Address Line 1</Label>
@@ -210,7 +333,7 @@ export default function Wizard() {
                       <div className="space-y-2">
                         <Label>City / Town</Label>
                         <Input
-                          placeholder="e.g. Manchester"
+                          placeholder="Auto-filled from postcode"
                           className="h-12"
                           value={formData.newCity}
                           onChange={e => updateForm({ newCity: e.target.value })}
@@ -231,7 +354,7 @@ export default function Wizard() {
                       <div className="space-y-2">
                         <Label>Move Date</Label>
                         <div className="relative">
-                          <CalendarIcon className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+                          <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-muted-foreground" />
                           <Input
                             type="date"
                             className="pl-10 h-12"
@@ -332,12 +455,12 @@ export default function Wizard() {
                         <div>
                           <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Moving From</p>
                           <p className="text-sm font-medium">{formData.oldAddressLine1 || "—"}</p>
-                          <p className="text-sm">{formData.oldCity} {formData.oldPostcode}</p>
+                          <p className="text-sm">{formData.oldCity} {normalisePostcode(formData.oldPostcode)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Moving To</p>
                           <p className="text-sm font-medium">{formData.newAddressLine1 || "—"}</p>
-                          <p className="text-sm">{formData.newCity} {formData.newPostcode}</p>
+                          <p className="text-sm">{formData.newCity} {normalisePostcode(formData.newPostcode)}</p>
                         </div>
                       </div>
                       <div className="pt-4 border-t border-border">
@@ -402,10 +525,7 @@ export default function Wizard() {
           <Button
             size="lg"
             onClick={handleNext}
-            disabled={
-              isSubmitting ||
-              (currentStep === 4 && (!formData.consent || formData.signature.length < 3))
-            }
+            disabled={isSubmitting || !stepValid[currentStep]}
             className="w-40 shadow-md shadow-primary/20"
           >
             {isSubmitting ? "Processing..." : currentStep === STEPS.length - 1 ? (
@@ -413,6 +533,18 @@ export default function Wizard() {
             ) : "Next"}
           </Button>
         </div>
+
+        {/* Step hint for address steps */}
+        {(currentStep === 0 || currentStep === 1) && (
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            Enter a valid UK postcode and your address to continue
+          </p>
+        )}
+        {currentStep === 3 && formData.selectedProviderIds.size === 0 && (
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            Select at least one provider to continue
+          </p>
+        )}
       </div>
     </AppLayout>
   );
