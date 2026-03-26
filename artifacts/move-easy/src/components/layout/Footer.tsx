@@ -8,8 +8,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
-                <Home className="w-4 h-4" />
+              <div className="h-9 w-9 overflow-hidden shrink-0">
+                <img src="/images/logo-junctionn.png" alt="" className="h-full w-auto" style={{ maxWidth: "none" }} />
               </div>
               <span className="font-display font-bold text-xl tracking-tight text-foreground">
                 Move<span className="text-primary">Easy</span>
