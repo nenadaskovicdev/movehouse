@@ -48,7 +48,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Sidebar header */}
         <div className="flex items-center h-16 px-4 border-b border-slate-700 gap-3">
-          <div className="h-8 w-8 overflow-hidden shrink-0">
+          <div className="h-8 overflow-hidden shrink-0 rounded-md bg-white" style={{ width: "38px" }}>
             <img src="/images/logo-junctionn.png" alt="" className="h-full w-auto" style={{ maxWidth: "none" }} />
           </div>
           {sidebarOpen && (

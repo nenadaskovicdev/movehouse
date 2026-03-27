@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="h-9 w-9 overflow-hidden shrink-0">
+              <div className="h-9 overflow-hidden shrink-0 rounded-lg bg-white" style={{ width: "43px" }}>
                 <img src="/images/logo-junctionn.png" alt="" className="h-full w-auto" style={{ maxWidth: "none" }} />
               </div>
               <span className="font-display font-bold text-xl tracking-tight text-foreground">

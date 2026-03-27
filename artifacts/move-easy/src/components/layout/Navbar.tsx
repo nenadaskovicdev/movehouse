@@ -39,7 +39,7 @@ export function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="h-10 w-10 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+            <div className="h-10 overflow-hidden shrink-0 rounded-lg bg-white group-hover:scale-105 transition-transform" style={{ width: "48px" }}>
               <img src="/images/logo-junctionn.png" alt="" className="h-full w-auto" style={{ maxWidth: "none" }} />
             </div>
             <span className={cn("font-display font-bold text-xl tracking-tight", isScrolled || !isHome ? "text-foreground" : "text-white")}>
