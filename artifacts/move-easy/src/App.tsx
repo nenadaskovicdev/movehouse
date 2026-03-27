@@ -11,6 +11,9 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Wizard from "./pages/Wizard";
 import Dashboard from "./pages/Dashboard";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import CookiePolicy from "./pages/Cookies";
 
 // Admin pages
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -58,6 +61,11 @@ function Router() {
       <Route path="/signup" component={SignUp} />
       <Route path="/wizard" component={Wizard} />
       <Route path="/dashboard" component={Dashboard} />
+
+      {/* Legal pages */}
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/cookies" component={CookiePolicy} />
 
       {/* Admin routes */}
       <Route path="/admin">
