@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StepWizard } from "@/components/ui/StepWizard";
 import { Search, MapPin, Calendar as CalendarIcon, CheckCircle2, Loader2, AlertCircle, CheckCheck, ShieldCheck, UserPlus } from "lucide-react";
@@ -87,7 +88,9 @@ export default function Wizard() {
   });
 
   const [accountData, setAccountData] = useState({
-    fullName: "",
+    title: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -204,7 +207,8 @@ export default function Wizard() {
   const isStep3Valid = formData.selectedProviderIds.size > 0;
   const isStep4Valid = formData.consent && formData.signature.trim().length >= 3;
   const isStep5Valid =
-    accountData.fullName.trim().length >= 2 &&
+    accountData.firstName.trim().length >= 1 &&
+    accountData.lastName.trim().length >= 1 &&
     accountData.email.includes("@") &&
     accountData.password.length >= 8 &&
     accountData.password === accountData.confirmPassword;
@@ -240,7 +244,8 @@ export default function Wizard() {
           toast({ title: "Passwords don't match", description: "Please check your password.", variant: "destructive" });
           return;
         }
-        doRegister({ data: { fullName: accountData.fullName, email: accountData.email, password: accountData.password } });
+        const fullName = [accountData.title, accountData.firstName, accountData.lastName].filter(Boolean).join(" ");
+        doRegister({ data: { fullName, email: accountData.email, password: accountData.password } });
       } else {
         submitMove();
       }
@@ -524,14 +529,48 @@ export default function Wizard() {
 
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="acc-name">Full Name</Label>
-                        <Input
-                          id="acc-name"
-                          placeholder="John Smith"
-                          className="h-12"
-                          value={accountData.fullName}
-                          onChange={e => setAccountData(p => ({ ...p, fullName: e.target.value }))}
-                        />
+                        <Label htmlFor="acc-title">Title</Label>
+                        <Select
+                          value={accountData.title}
+                          onValueChange={val => setAccountData(p => ({ ...p, title: val }))}
+                        >
+                          <SelectTrigger id="acc-title" className="h-12">
+                            <SelectValue placeholder="Select title" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Mr">Mr</SelectItem>
+                            <SelectItem value="Ms">Ms</SelectItem>
+                            <SelectItem value="Mrs">Mrs</SelectItem>
+                            <SelectItem value="Miss">Miss</SelectItem>
+                            <SelectItem value="Dr">Dr</SelectItem>
+                            <SelectItem value="Professor">Professor</SelectItem>
+                            <SelectItem value="Lady">Lady</SelectItem>
+                            <SelectItem value="Sir">Sir</SelectItem>
+                            <SelectItem value="Reverend">Reverend</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="acc-first">First name</Label>
+                          <Input
+                            id="acc-first"
+                            placeholder="John"
+                            className="h-12"
+                            value={accountData.firstName}
+                            onChange={e => setAccountData(p => ({ ...p, firstName: e.target.value }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="acc-last">Last name</Label>
+                          <Input
+                            id="acc-last"
+                            placeholder="Smith"
+                            className="h-12"
+                            value={accountData.lastName}
+                            onChange={e => setAccountData(p => ({ ...p, lastName: e.target.value }))}
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="acc-email">Email</Label>
@@ -615,6 +654,22 @@ export default function Wizard() {
               "Next"
             )}
           </Button>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
+          <div className="flex items-center gap-1.5 border border-gray-200 rounded-md px-3 py-1.5 bg-white shadow-sm">
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <span className="text-xs font-semibold text-gray-600 tracking-wide">SSL Secure</span>
+          </div>
+          <div className="flex items-center gap-1.5 border border-blue-600 rounded-md px-3 py-1.5 bg-blue-600 shadow-sm">
+            <span className="text-xs font-bold text-white tracking-wide">ico.</span>
+            <span className="text-xs text-blue-100">Registered</span>
+          </div>
+          <div className="flex items-center gap-1.5 border border-blue-700 rounded-md px-3 py-1.5 bg-blue-700 shadow-sm">
+            <svg className="w-3.5 h-3.5 text-yellow-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span className="text-xs font-semibold text-white tracking-wide">GDPR Compliant</span>
+          </div>
         </div>
       </div>
     </AppLayout>
