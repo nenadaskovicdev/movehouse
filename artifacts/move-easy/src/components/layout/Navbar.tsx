@@ -39,7 +39,7 @@ export function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="h-10 overflow-hidden shrink-0 rounded-lg bg-white group-hover:scale-105 transition-transform" style={{ width: "48px" }}>
+            <div className="h-10 w-10 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
               <img src="/images/logo-junctionn.png" alt="" className="h-full w-auto" style={{ maxWidth: "none" }} />
             </div>
             <span className={cn("font-display font-bold text-xl tracking-tight", isScrolled || !isHome ? "text-foreground" : "text-white")}>
@@ -49,15 +49,15 @@ export function Navbar() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/#how-it-works" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
+            <a href="/#how-it-works" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
               How it works
-            </Link>
-            <Link href="/#benefits" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
+            </a>
+            <a href="/#benefits" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
               Features
-            </Link>
-            <Link href="/#faq" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
+            </a>
+            <a href="/#faq" className={cn("text-sm font-medium transition-colors", isScrolled || !isHome ? "text-muted-foreground hover:text-foreground" : "text-white/80 hover:text-white")}>
               FAQs
-            </Link>
+            </a>
           </nav>
 
           {/* Desktop Actions */}
@@ -107,15 +107,15 @@ export function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-b border-border shadow-lg py-4 px-4 flex flex-col gap-4 animate-in slide-in-from-top-2">
-          <Link href="/#how-it-works" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
+          <a href="/#how-it-works" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
             How it works
-          </Link>
-          <Link href="/#benefits" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
+          </a>
+          <a href="/#benefits" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
             Features
-          </Link>
-          <Link href="/#faq" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
+          </a>
+          <a href="/#faq" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
             FAQs
-          </Link>
+          </a>
           <div className="h-px bg-border my-2" />
           {user ? (
             <>

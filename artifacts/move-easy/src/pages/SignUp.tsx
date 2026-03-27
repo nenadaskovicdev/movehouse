@@ -51,7 +51,7 @@ export default function SignUp() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="h-12 overflow-hidden shrink-0 rounded-lg bg-white" style={{ width: "52px" }}>
+            <div className="h-12 w-12 overflow-hidden shrink-0">
               <img src="/images/logo-junctionn.png" alt="" className="h-full w-auto" style={{ maxWidth: "none" }} />
             </div>
             <span className="font-display font-bold text-2xl tracking-tight text-foreground">

@@ -2,7 +2,53 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, CheckSquare, Sparkles, Shield, Zap, Home as HomeIcon } from "lucide-react";
+import { ArrowRight, MapPin, CheckSquare, Sparkles, Shield, Zap, Home as HomeIcon, ChevronDown } from "lucide-react";
+import { useState } from "react";
+
+const faqs = [
+  {
+    q: "Is MoveEasy really free?",
+    a: "Yes, completely free for you. We earn a commission if you choose to switch to one of our recommended energy, broadband, or insurance partners — but there's never any obligation to do so."
+  },
+  {
+    q: "Which UK councils and providers do you support?",
+    a: "We support all 333 UK local councils plus major water, energy, and broadband providers including British Gas, Octopus Energy, EDF, BT, Virgin Media, Sky, and more."
+  },
+  {
+    q: "How long does the process take?",
+    a: "Most users complete the full notification process in under 5 minutes. We handle sending all the notifications — you just fill in your details once."
+  },
+  {
+    q: "Is my personal data safe?",
+    a: "Absolutely. We are fully GDPR compliant. Your data is encrypted and only shared with the specific providers you select. We never sell your data to third parties."
+  },
+  {
+    q: "When should I start the process?",
+    a: "We recommend starting 2–4 weeks before your move date so all providers have enough time to process your change of address before you move in."
+  },
+  {
+    q: "What if I need to make changes after submitting?",
+    a: "No problem — you can log back in to your dashboard at any time to update your details or add additional providers you may have missed."
+  }
+];
+
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-border last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-5 text-left gap-4"
+      >
+        <span className="font-semibold text-foreground text-base">{q}</span>
+        <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <p className="text-muted-foreground pb-5 leading-relaxed">{a}</p>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -126,6 +172,21 @@ export default function Home() {
               />
               <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/10" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground mb-4">Frequently asked questions</h2>
+            <p className="text-lg text-muted-foreground">Everything you need to know about using MoveEasy.</p>
+          </div>
+          <div className="divide-y divide-border rounded-2xl border border-border bg-white shadow-sm px-6">
+            {faqs.map((faq, i) => (
+              <FAQItem key={i} q={faq.q} a={faq.a} />
+            ))}
           </div>
         </div>
       </section>
