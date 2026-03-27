@@ -14,7 +14,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
 - **Database**: PostgreSQL + Drizzle ORM
-- **Auth**: express-session + connect-pg-simple (sessions stored in `session` table)
+- **Auth**: express-session + connect-pg-simple (sessions stored in `session` table); cookie: `SameSite=None; Secure=true` (required for cross-site iframe preview & deployed HTTPS contexts)
 - **Validation**: Zod (use `zod` not `zod/v4` in esbuild bundles), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
