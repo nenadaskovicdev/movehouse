@@ -44,6 +44,7 @@ interface PostcodeState {
   error: string;
 }
 
+
 function normalisePostcode(raw: string): string {
   return raw.trim().toUpperCase().replace(/\s+/g, " ");
 }
@@ -71,10 +72,12 @@ export default function Wizard() {
   const STEPS = needsAccount ? [...STEPS_BASE, "Your Account"] : STEPS_BASE;
 
   const [formData, setFormData] = useState({
-    oldAddressLine1: "",
+    oldHouseNo: "",
+    oldStreet: "",
     oldCity: "",
     oldPostcode: "",
-    newAddressLine1: "",
+    newHouseNo: "",
+    newStreet: "",
     newCity: "",
     newPostcode: "",
     moveDate: "",
@@ -193,8 +196,10 @@ export default function Wizard() {
     if (formData.newPostcode.trim()) lookupPostcode(formData.newPostcode, setNewPc, "newCity");
   };
 
-  const isStep0Valid = oldPc.status === "valid" && formData.oldAddressLine1.trim().length >= 3;
-  const isStep1Valid = newPc.status === "valid" && formData.newAddressLine1.trim().length >= 3;
+  const oldAddressLine1 = [formData.oldHouseNo, formData.oldStreet].filter(Boolean).join(" ");
+  const newAddressLine1 = [formData.newHouseNo, formData.newStreet].filter(Boolean).join(" ");
+  const isStep0Valid = oldPc.status === "valid" && formData.oldHouseNo.trim().length >= 1 && formData.oldStreet.trim().length >= 3;
+  const isStep1Valid = newPc.status === "valid" && formData.newHouseNo.trim().length >= 1 && formData.newStreet.trim().length >= 3;
   const isStep2Valid = !!formData.moveDate;
   const isStep3Valid = formData.selectedProviderIds.size > 0;
   const isStep4Valid = formData.consent && formData.signature.trim().length >= 3;
@@ -213,10 +218,10 @@ export default function Wizard() {
   const submitMove = () => {
     doCreateMove({
       data: {
-        oldAddressLine1: formData.oldAddressLine1,
+        oldAddressLine1,
         oldCity: formData.oldCity,
         oldPostcode: normalisePostcode(formData.oldPostcode),
-        newAddressLine1: formData.newAddressLine1,
+        newAddressLine1,
         newCity: formData.newCity,
         newPostcode: normalisePostcode(formData.newPostcode),
         moveDate: formData.moveDate,
@@ -304,9 +309,15 @@ export default function Wizard() {
                         {oldPc.status === "invalid" && <p className="text-sm text-destructive">{oldPc.error}</p>}
                         {oldPc.status === "valid" && oldPc.town && <p className="text-sm text-green-600 font-medium">{oldPc.town}</p>}
                       </div>
-                      <div className="space-y-2">
-                        <Label>Address Line 1</Label>
-                        <Input placeholder="e.g. 123 High Street" className="h-12" value={formData.oldAddressLine1} onChange={e => updateForm({ oldAddressLine1: e.target.value })} />
+                      <div className="grid grid-cols-5 gap-3">
+                        <div className="col-span-2 space-y-2">
+                          <Label>House no. / name</Label>
+                          <Input placeholder="e.g. 24 or Flat 2" className="h-12" value={formData.oldHouseNo} onChange={e => updateForm({ oldHouseNo: e.target.value })} />
+                        </div>
+                        <div className="col-span-3 space-y-2">
+                          <Label>Street</Label>
+                          <Input placeholder="e.g. High Street" className="h-12" value={formData.oldStreet} onChange={e => updateForm({ oldStreet: e.target.value })} />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label>City / Town</Label>
@@ -340,9 +351,15 @@ export default function Wizard() {
                         {newPc.status === "invalid" && <p className="text-sm text-destructive">{newPc.error}</p>}
                         {newPc.status === "valid" && newPc.town && <p className="text-sm text-green-600 font-medium">{newPc.town}</p>}
                       </div>
-                      <div className="space-y-2">
-                        <Label>Address Line 1</Label>
-                        <Input placeholder="e.g. 45 Park Lane" className="h-12" value={formData.newAddressLine1} onChange={e => updateForm({ newAddressLine1: e.target.value })} />
+                      <div className="grid grid-cols-5 gap-3">
+                        <div className="col-span-2 space-y-2">
+                          <Label>House no. / name</Label>
+                          <Input placeholder="e.g. 45 or Oak House" className="h-12" value={formData.newHouseNo} onChange={e => updateForm({ newHouseNo: e.target.value })} />
+                        </div>
+                        <div className="col-span-3 space-y-2">
+                          <Label>Street</Label>
+                          <Input placeholder="e.g. Park Lane" className="h-12" value={formData.newStreet} onChange={e => updateForm({ newStreet: e.target.value })} />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label>City / Town</Label>
@@ -443,12 +460,12 @@ export default function Wizard() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Moving From</p>
-                          <p className="text-sm font-medium">{formData.oldAddressLine1 || "—"}</p>
+                          <p className="text-sm font-medium">{oldAddressLine1 || "—"}</p>
                           <p className="text-sm">{formData.oldCity} {normalisePostcode(formData.oldPostcode)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Moving To</p>
-                          <p className="text-sm font-medium">{formData.newAddressLine1 || "—"}</p>
+                          <p className="text-sm font-medium">{newAddressLine1 || "—"}</p>
                           <p className="text-sm">{formData.newCity} {normalisePostcode(formData.newPostcode)}</p>
                         </div>
                       </div>
