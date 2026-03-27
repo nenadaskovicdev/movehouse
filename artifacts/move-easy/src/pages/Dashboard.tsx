@@ -3,10 +3,11 @@ import { ProviderCard } from "@/components/shared/ProviderCard";
 import { RecommendedProviderCard } from "@/components/shared/RecommendedProviderCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, ArrowRight, User, Loader2 } from "lucide-react";
+import { MapPin, Calendar, ArrowRight, User, Loader2, MessageCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useListMoves, useGetMove } from "@workspace/api-client-react";
 import { Link } from "wouter";
+import { SupportChat } from "@/components/shared/SupportChat";
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "—";
@@ -226,10 +227,18 @@ export default function Dashboard() {
 
               <Card className="bg-primary text-primary-foreground border-none">
                 <CardContent className="p-6 text-center">
-                  <h3 className="font-bold text-lg mb-2">Need help?</h3>
-                  <p className="text-primary-foreground/80 text-sm mb-4">Our moving experts are available 9am-5pm.</p>
-                  <Button variant="secondary" className="w-full text-primary hover:bg-white">
-                    Contact Support
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-1">Need help?</h3>
+                  <p className="text-primary-foreground/80 text-sm mb-1">AI support available 24/7.</p>
+                  <p className="text-primary-foreground/60 text-xs mb-4">Escalates to a human if needed.</p>
+                  <Button
+                    variant="secondary"
+                    className="w-full text-primary hover:bg-white"
+                    onClick={() => document.getElementById("open-chat-btn")?.click()}
+                  >
+                    Chat with us
                   </Button>
                 </CardContent>
               </Card>
@@ -238,6 +247,15 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <SupportChat ctx={{
+        userName: user?.fullName ?? "there",
+        fromAddress: `${latestMove.oldAddressLine1}, ${latestMove.oldCity}`,
+        toAddress: `${latestMove.newAddressLine1}, ${latestMove.newCity}`,
+        moveDate: formatDate(latestMove.moveDate),
+        providerCount: moveDetail?.providers.length ?? 0,
+        providerNames: moveDetail?.providers.map(p => p.providerName) ?? [],
+      }} />
     </AppLayout>
   );
 }
