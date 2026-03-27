@@ -85,7 +85,7 @@ export function Navbar() {
                     Log in
                   </Button>
                 </Link>
-                <Link href="/signup">
+                <Link href="/wizard">
                   <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all rounded-full px-6">
                     Start Your Move
                   </Button>
@@ -131,7 +131,7 @@ export function Navbar() {
               <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg">
                 Log in
               </Link>
-              <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/wizard" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full mt-2 rounded-full">Start Your Move</Button>
               </Link>
             </>

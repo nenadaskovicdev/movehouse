@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,13 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StepWizard } from "@/components/ui/StepWizard";
-import { Search, MapPin, Calendar as CalendarIcon, CheckCircle2, Loader2, AlertCircle, CheckCheck } from "lucide-react";
-import { useListProviders, useCreateMove } from "@workspace/api-client-react";
+import { Search, MapPin, Calendar as CalendarIcon, CheckCircle2, Loader2, AlertCircle, CheckCheck, ShieldCheck, UserPlus } from "lucide-react";
+import { useListProviders, useCreateMove, useRegister } from "@workspace/api-client-react";
 import type { Provider } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
-const STEPS = ["Old Address", "New Address", "Dates", "Services", "Confirm"];
+const STEPS_BASE = ["Old Address", "New Address", "Dates", "Services", "Confirm"];
 
 const CATEGORY_LABELS: Record<string, string> = {
   council: "Local Council (Tax & Electoral Roll)",
@@ -63,7 +64,11 @@ function deriveTown(result: any): string {
 export default function Wizard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, setUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
+
+  const needsAccount = !user;
+  const STEPS = needsAccount ? [...STEPS_BASE, "Your Account"] : STEPS_BASE;
 
   const [formData, setFormData] = useState({
     oldAddressLine1: "",
@@ -76,6 +81,13 @@ export default function Wizard() {
     selectedProviderIds: new Set<number>(),
     consent: false,
     signature: "",
+  });
+
+  const [accountData, setAccountData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [oldPc, setOldPc] = useState<PostcodeState>({ status: "idle", town: "", error: "" });
@@ -96,6 +108,20 @@ export default function Wizard() {
       onError(err: any) {
         const message = err?.data?.error ?? err?.message ?? "Failed to submit move";
         toast({ title: "Submission failed", description: message, variant: "destructive" });
+      },
+    },
+    request: { credentials: "include" },
+  });
+
+  const { mutate: doRegister, isPending: isRegistering } = useRegister({
+    mutation: {
+      onSuccess(newUser) {
+        setUser(newUser);
+        submitMove();
+      },
+      onError(err: any) {
+        const message = err?.data?.error ?? err?.message ?? "Registration failed";
+        toast({ title: "Could not create account", description: message, variant: "destructive" });
       },
     },
     request: { credentials: "include" },
@@ -132,7 +158,7 @@ export default function Wizard() {
       if (json.status === 200 && json.result) {
         const town = deriveTown(json.result);
         setter({ status: "valid", town, error: "" });
-        updateForm({ [cityField]: town });
+        setFormData(prev => ({ ...prev, [cityField]: town }));
       } else {
         setter({ status: "invalid", town: "", error: "Postcode not found — please check and try again" });
       }
@@ -167,36 +193,24 @@ export default function Wizard() {
     if (formData.newPostcode.trim()) lookupPostcode(formData.newPostcode, setNewPc, "newCity");
   };
 
-  const isStep0Valid =
-    oldPc.status === "valid" &&
-    formData.oldAddressLine1.trim().length >= 3;
-
-  const isStep1Valid =
-    newPc.status === "valid" &&
-    formData.newAddressLine1.trim().length >= 3;
-
+  const isStep0Valid = oldPc.status === "valid" && formData.oldAddressLine1.trim().length >= 3;
+  const isStep1Valid = newPc.status === "valid" && formData.newAddressLine1.trim().length >= 3;
   const isStep2Valid = !!formData.moveDate;
-
   const isStep3Valid = formData.selectedProviderIds.size > 0;
-
   const isStep4Valid = formData.consent && formData.signature.trim().length >= 3;
+  const isStep5Valid =
+    accountData.fullName.trim().length >= 2 &&
+    accountData.email.includes("@") &&
+    accountData.password.length >= 8 &&
+    accountData.password === accountData.confirmPassword;
 
-  const stepValid = [isStep0Valid, isStep1Valid, isStep2Valid, isStep3Valid, isStep4Valid];
+  const stepValid = needsAccount
+    ? [isStep0Valid, isStep1Valid, isStep2Valid, isStep3Valid, isStep4Valid, isStep5Valid]
+    : [isStep0Valid, isStep1Valid, isStep2Valid, isStep3Valid, isStep4Valid];
 
-  const handleNext = () => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo(0, 0);
-    } else {
-      submitForm();
-    }
-  };
+  const lastStep = STEPS.length - 1;
 
-  const handleBack = () => {
-    if (currentStep > 0) setCurrentStep(prev => prev - 1);
-  };
-
-  const submitForm = () => {
+  const submitMove = () => {
     doCreateMove({
       data: {
         oldAddressLine1: formData.oldAddressLine1,
@@ -211,6 +225,27 @@ export default function Wizard() {
     });
   };
 
+  const handleNext = () => {
+    if (currentStep < lastStep) {
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo(0, 0);
+    } else {
+      if (needsAccount) {
+        if (accountData.password !== accountData.confirmPassword) {
+          toast({ title: "Passwords don't match", description: "Please check your password.", variant: "destructive" });
+          return;
+        }
+        doRegister({ data: { fullName: accountData.fullName, email: accountData.email, password: accountData.password } });
+      } else {
+        submitMove();
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep(prev => prev - 1);
+  };
+
   const groupedProviders = providers.reduce<Record<string, Provider[]>>((acc, p) => {
     if (!acc[p.category]) acc[p.category] = [];
     acc[p.category].push(p);
@@ -223,6 +258,8 @@ export default function Wizard() {
     if (state.status === "invalid") return <AlertCircle className="absolute right-3 top-3.5 w-5 h-5 text-destructive" />;
     return null;
   }
+
+  const isProcessing = isSubmitting || isRegistering;
 
   return (
     <AppLayout>
@@ -243,7 +280,7 @@ export default function Wizard() {
             >
               <Card className="p-6 sm:p-8 shadow-lg border-border/50">
 
-                {/* STEP 1: OLD ADDRESS */}
+                {/* STEP 0: OLD ADDRESS */}
                 {currentStep === 0 && (
                   <div className="space-y-6">
                     <div>
@@ -264,36 +301,22 @@ export default function Wizard() {
                           />
                           <PostcodeIcon state={oldPc} />
                         </div>
-                        {oldPc.status === "invalid" && (
-                          <p className="text-sm text-destructive">{oldPc.error}</p>
-                        )}
-                        {oldPc.status === "valid" && oldPc.town && (
-                          <p className="text-sm text-green-600 font-medium">{oldPc.town}</p>
-                        )}
+                        {oldPc.status === "invalid" && <p className="text-sm text-destructive">{oldPc.error}</p>}
+                        {oldPc.status === "valid" && oldPc.town && <p className="text-sm text-green-600 font-medium">{oldPc.town}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label>Address Line 1</Label>
-                        <Input
-                          placeholder="e.g. 123 High Street"
-                          className="h-12"
-                          value={formData.oldAddressLine1}
-                          onChange={e => updateForm({ oldAddressLine1: e.target.value })}
-                        />
+                        <Input placeholder="e.g. 123 High Street" className="h-12" value={formData.oldAddressLine1} onChange={e => updateForm({ oldAddressLine1: e.target.value })} />
                       </div>
                       <div className="space-y-2">
                         <Label>City / Town</Label>
-                        <Input
-                          placeholder="Auto-filled from postcode"
-                          className="h-12"
-                          value={formData.oldCity}
-                          onChange={e => updateForm({ oldCity: e.target.value })}
-                        />
+                        <Input placeholder="Auto-filled from postcode" className="h-12" value={formData.oldCity} onChange={e => updateForm({ oldCity: e.target.value })} />
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 2: NEW ADDRESS */}
+                {/* STEP 1: NEW ADDRESS */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <div>
@@ -314,36 +337,22 @@ export default function Wizard() {
                           />
                           <PostcodeIcon state={newPc} />
                         </div>
-                        {newPc.status === "invalid" && (
-                          <p className="text-sm text-destructive">{newPc.error}</p>
-                        )}
-                        {newPc.status === "valid" && newPc.town && (
-                          <p className="text-sm text-green-600 font-medium">{newPc.town}</p>
-                        )}
+                        {newPc.status === "invalid" && <p className="text-sm text-destructive">{newPc.error}</p>}
+                        {newPc.status === "valid" && newPc.town && <p className="text-sm text-green-600 font-medium">{newPc.town}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label>Address Line 1</Label>
-                        <Input
-                          placeholder="e.g. 45 Park Lane"
-                          className="h-12"
-                          value={formData.newAddressLine1}
-                          onChange={e => updateForm({ newAddressLine1: e.target.value })}
-                        />
+                        <Input placeholder="e.g. 45 Park Lane" className="h-12" value={formData.newAddressLine1} onChange={e => updateForm({ newAddressLine1: e.target.value })} />
                       </div>
                       <div className="space-y-2">
                         <Label>City / Town</Label>
-                        <Input
-                          placeholder="Auto-filled from postcode"
-                          className="h-12"
-                          value={formData.newCity}
-                          onChange={e => updateForm({ newCity: e.target.value })}
-                        />
+                        <Input placeholder="Auto-filled from postcode" className="h-12" value={formData.newCity} onChange={e => updateForm({ newCity: e.target.value })} />
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 3: DATES */}
+                {/* STEP 2: DATES */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
                     <div>
@@ -355,22 +364,15 @@ export default function Wizard() {
                         <Label>Move Date</Label>
                         <div className="relative">
                           <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            type="date"
-                            className="pl-10 h-12"
-                            value={formData.moveDate}
-                            onChange={e => updateForm({ moveDate: e.target.value })}
-                          />
+                          <Input type="date" className="pl-10 h-12" value={formData.moveDate} onChange={e => updateForm({ moveDate: e.target.value })} />
                         </div>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          We recommend setting this at least 14 days in the future to ensure providers have time to process your request.
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">We recommend setting this at least 14 days in the future so providers have time to process your request.</p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 4: SERVICES */}
+                {/* STEP 3: SERVICES */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <div>
@@ -380,9 +382,7 @@ export default function Wizard() {
 
                     {loadingProviders ? (
                       <div className="space-y-3">
-                        {[1,2,3,4].map(i => (
-                          <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />
-                        ))}
+                        {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />)}
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -396,9 +396,7 @@ export default function Wizard() {
                                 <div
                                   key={provider.id}
                                   className={`flex items-start space-x-3 p-4 border rounded-xl transition-colors cursor-pointer ${
-                                    provider.isAffiliate
-                                      ? "border-primary/30 bg-primary/5"
-                                      : "hover:bg-muted/50"
+                                    provider.isAffiliate ? "border-primary/30 bg-primary/5" : "hover:bg-muted/50"
                                   }`}
                                   onClick={() => toggleProvider(provider.id)}
                                 >
@@ -411,22 +409,14 @@ export default function Wizard() {
                                   />
                                   <div className="grid gap-1 leading-none flex-1">
                                     <div className="flex items-center justify-between">
-                                      <label
-                                        htmlFor={`p-${provider.id}`}
-                                        className="font-semibold text-base cursor-pointer"
-                                        onClick={e => e.stopPropagation()}
-                                      >
+                                      <label htmlFor={`p-${provider.id}`} className="font-semibold text-base cursor-pointer" onClick={e => e.stopPropagation()}>
                                         {provider.name}
                                       </label>
                                       {provider.isAffiliate && (
-                                        <span className="text-[10px] uppercase font-bold bg-primary text-white px-2 py-0.5 rounded">
-                                          Partner
-                                        </span>
+                                        <span className="text-[10px] uppercase font-bold bg-primary text-white px-2 py-0.5 rounded">Partner</span>
                                       )}
                                     </div>
-                                    {provider.description && (
-                                      <p className="text-sm text-muted-foreground">{provider.description}</p>
-                                    )}
+                                    {provider.description && <p className="text-sm text-muted-foreground">{provider.description}</p>}
                                   </div>
                                 </div>
                               ))}
@@ -435,14 +425,13 @@ export default function Wizard() {
                         ))}
                       </div>
                     )}
-
                     <p className="text-sm text-muted-foreground">
                       {formData.selectedProviderIds.size} provider{formData.selectedProviderIds.size !== 1 ? "s" : ""} selected
                     </p>
                   </div>
                 )}
 
-                {/* STEP 5: CONFIRM */}
+                {/* STEP 4: CONFIRM */}
                 {currentStep === 4 && (
                   <div className="space-y-6">
                     <div>
@@ -472,10 +461,7 @@ export default function Wizard() {
                         <p className="text-sm font-medium">
                           {formData.selectedProviderIds.size === 0
                             ? "None selected"
-                            : providers
-                                .filter(p => formData.selectedProviderIds.has(p.id))
-                                .map(p => p.name)
-                                .join(", ")}
+                            : providers.filter(p => formData.selectedProviderIds.has(p.id)).map(p => p.name).join(", ")}
                         </p>
                       </div>
                     </div>
@@ -506,6 +492,80 @@ export default function Wizard() {
                   </div>
                 )}
 
+                {/* STEP 5: CREATE ACCOUNT (non-logged-in users only) */}
+                {currentStep === 5 && needsAccount && (
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                        <UserPlus className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold mb-1">Almost there — create your account</h2>
+                        <p className="text-muted-foreground">Your move details are saved. Create a free account to submit and track everything from your dashboard.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="acc-name">Full Name</Label>
+                        <Input
+                          id="acc-name"
+                          placeholder="John Smith"
+                          className="h-12"
+                          value={accountData.fullName}
+                          onChange={e => setAccountData(p => ({ ...p, fullName: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="acc-email">Email</Label>
+                        <Input
+                          id="acc-email"
+                          type="email"
+                          placeholder="john@example.com"
+                          className="h-12"
+                          value={accountData.email}
+                          onChange={e => setAccountData(p => ({ ...p, email: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="acc-password">Password</Label>
+                        <Input
+                          id="acc-password"
+                          type="password"
+                          placeholder="At least 8 characters"
+                          className="h-12"
+                          value={accountData.password}
+                          onChange={e => setAccountData(p => ({ ...p, password: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="acc-confirm">Confirm Password</Label>
+                        <Input
+                          id="acc-confirm"
+                          type="password"
+                          placeholder="Repeat your password"
+                          className="h-12"
+                          value={accountData.confirmPassword}
+                          onChange={e => setAccountData(p => ({ ...p, confirmPassword: e.target.value }))}
+                        />
+                        {accountData.confirmPassword && accountData.password !== accountData.confirmPassword && (
+                          <p className="text-sm text-destructive">Passwords don't match</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm bg-orange-50 text-orange-700 p-3 rounded-lg border border-orange-100">
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <p>Your data is encrypted and never sold. Free forever.</p>
+                    </div>
+
+                    <p className="text-sm text-center text-muted-foreground">
+                      Already have an account?{" "}
+                      <Link href="/login" className="text-primary font-medium hover:underline">Sign in</Link>
+                    </p>
+                  </div>
+                )}
+
               </Card>
             </motion.div>
           </AnimatePresence>
@@ -517,7 +577,7 @@ export default function Wizard() {
             variant="outline"
             size="lg"
             onClick={handleBack}
-            disabled={currentStep === 0 || isSubmitting}
+            disabled={currentStep === 0 || isProcessing}
             className="w-32"
           >
             Back
@@ -525,26 +585,20 @@ export default function Wizard() {
           <Button
             size="lg"
             onClick={handleNext}
-            disabled={isSubmitting || !stepValid[currentStep]}
-            className="w-40 shadow-md shadow-primary/20"
+            disabled={!stepValid[currentStep] || isProcessing}
+            className="w-48"
           >
-            {isSubmitting ? "Processing..." : currentStep === STEPS.length - 1 ? (
-              <>Submit <CheckCircle2 className="w-5 h-5 ml-2" /></>
-            ) : "Next"}
+            {isProcessing ? (
+              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Processing...</>
+            ) : currentStep === lastStep ? (
+              needsAccount ? "Create Account & Submit" : "Submit My Move"
+            ) : currentStep === lastStep - 1 && needsAccount ? (
+              "Review Details"
+            ) : (
+              "Next"
+            )}
           </Button>
         </div>
-
-        {/* Step hint for address steps */}
-        {(currentStep === 0 || currentStep === 1) && (
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Enter a valid UK postcode and your address to continue
-          </p>
-        )}
-        {currentStep === 3 && formData.selectedProviderIds.size === 0 && (
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Select at least one provider to continue
-          </p>
-        )}
       </div>
     </AppLayout>
   );
